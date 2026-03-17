@@ -1,0 +1,21 @@
+from pydantic import BaseModel, Field
+
+
+class Ingredient(BaseModel):
+    name: str
+    amount: str
+
+
+class RecipeRequest(BaseModel):
+    mood_emoji: str = Field(max_length=10)
+    mood_text: str | None = Field(default=None, max_length=500)
+
+
+class RecipeResponse(BaseModel):
+    reaction: str
+    recipe_name: str
+    ingredients: list[Ingredient]
+    steps: list[str]
+    cooking_time: str
+    difficulty: str
+    description: str
