@@ -22,7 +22,7 @@ export default function Navbar() {
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center gap-2 text-xl font-bold text-slate-blue">
-            <Image src="/logo.png" alt="Moodish" width={32} height={32} />
+            <Image src="/logo-optimized.png" alt="Moodish" width={32} height={32} />
             Moodish
           </Link>
 
