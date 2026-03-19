@@ -7,9 +7,11 @@ import Footer from "@/components/Footer";
 import RecipeCard from "@/components/RecipeCard";
 import ShareButtons from "@/components/ShareButtons";
 import { Recipe } from "@/lib/types";
+import { useAuth } from "@/lib/auth-context";
 
 export default function ResultPage() {
   const router = useRouter();
+  const { user, loading } = useAuth();
   const cardRef = useRef<HTMLDivElement>(null);
   const [recipe] = useState<Recipe | null>(() => {
     if (typeof window === "undefined") return null;
@@ -22,10 +24,12 @@ export default function ResultPage() {
   });
 
   useEffect(() => {
-    if (!recipe) {
+    if (!loading && !user) {
+      router.replace("/login");
+    } else if (!recipe) {
       router.replace("/mood");
     }
-  }, [recipe, router]);
+  }, [recipe, user, loading, router]);
 
   useEffect(() => {
     const key = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
@@ -34,7 +38,7 @@ export default function ResultPage() {
     }
   }, []);
 
-  if (!recipe) return null;
+  if (loading || !user || !recipe) return null;
 
   return (
     <>
