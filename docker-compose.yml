@@ -1,22 +1,23 @@
 services:
   backend:
     build: ./backend
-    ports:
-      - "8091:8000"
+    expose:
+      - "8000"
     env_file:
       - ./backend/.env
     environment:
-      - ALLOWED_ORIGINS=https://moodish.semo3.com
+      - ALLOWED_ORIGINS=http://frontend:3000
     restart: unless-stopped
 
   frontend:
     build:
       context: ./frontend
       args:
-        NEXT_PUBLIC_API_URL: https://api-moodish.semo3.com
         NEXT_PUBLIC_KAKAO_JS_KEY: ${KAKAO_JS_KEY:-}
     ports:
       - "3091:3000"
+    environment:
+      - BACKEND_URL=http://backend:8000
     depends_on:
       - backend
     restart: unless-stopped

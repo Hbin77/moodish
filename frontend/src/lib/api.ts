@@ -5,7 +5,7 @@ export async function fetchRecipe(
   moodText: string | null
 ): Promise<Recipe> {
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/recipe`,
+    `/api/recipe`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
