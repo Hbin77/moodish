@@ -1,5 +1,5 @@
 export interface MoodOption {
-  emoji: string;
+  icon: string;
   label: string;
   value: string;
 }

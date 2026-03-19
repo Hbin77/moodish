@@ -9,12 +9,12 @@ import { fetchRecipe } from "@/lib/api";
 
 export default function MoodForm() {
   const router = useRouter();
-  const [selectedEmoji, setSelectedEmoji] = useState<string | null>(null);
+  const [selectedMood, setSelectedMood] = useState<string | null>(null);
   const [moodText, setMoodText] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const canSubmit = selectedEmoji || moodText.trim().length > 0;
+  const canSubmit = selectedMood || moodText.trim().length > 0;
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
@@ -23,7 +23,7 @@ export default function MoodForm() {
 
     try {
       const recipe = await fetchRecipe(
-        selectedEmoji ?? "",
+        selectedMood || "",
         moodText.trim() || null
       );
       sessionStorage.setItem("moodish_recipe", JSON.stringify(recipe));
@@ -39,13 +39,14 @@ export default function MoodForm() {
 
   return (
     <div className="flex flex-col gap-6">
-      <MoodSelector selected={selectedEmoji} onSelect={setSelectedEmoji} />
+      <h1 className="text-2xl font-bold text-[#495867]">오늘 기분이 어때요?</h1>
+      <MoodSelector selected={selectedMood} onSelect={setSelectedMood} />
       <MoodTextInput value={moodText} onChange={setMoodText} />
       {error && <p className="text-center text-sm text-red-500">{error}</p>}
       <button
         onClick={handleSubmit}
         disabled={!canSubmit}
-        className="w-full rounded-2xl bg-amber-500 py-4 text-lg font-semibold text-white transition-colors hover:bg-amber-600 disabled:cursor-not-allowed disabled:bg-stone-300"
+        className="w-full rounded-full bg-[#FE5F55] py-3.5 text-base font-semibold text-white transition-colors hover:bg-[#e5534b] disabled:cursor-not-allowed disabled:bg-[#BDD5EA] disabled:text-[#577399]"
       >
         오늘의 레시피 받기
       </button>

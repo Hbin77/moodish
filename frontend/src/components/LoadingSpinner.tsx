@@ -22,8 +22,8 @@ export default function LoadingSpinner() {
 
   return (
     <div className="flex flex-col items-center gap-4 py-12">
-      <div className="h-10 w-10 animate-spin rounded-full border-4 border-amber-200 border-t-amber-500" />
-      <p className="text-sm text-stone-500">{MESSAGES[msgIdx]}</p>
+      <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#BDD5EA] border-t-[#FE5F55]" />
+      <p className="text-sm text-[#577399]">{MESSAGES[msgIdx]}</p>
     </div>
   );
 }

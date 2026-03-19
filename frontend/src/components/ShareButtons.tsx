@@ -52,7 +52,7 @@ export default function ShareButtons({ recipe, cardRef }: ShareButtonsProps) {
     if (!cardRef.current) return;
     try {
       const canvas = await html2canvas(cardRef.current, {
-        backgroundColor: "#FFFBF5",
+        backgroundColor: "#F7F7FF",
         scale: 2,
       });
       const link = document.createElement("a");
@@ -68,13 +68,13 @@ export default function ShareButtons({ recipe, cardRef }: ShareButtonsProps) {
     <div className="flex gap-3">
       <button
         onClick={handleKakaoShare}
-        className="flex-1 rounded-2xl bg-yellow-400 py-3 text-sm font-semibold text-yellow-900 transition-colors hover:bg-yellow-500"
+        className="flex-1 rounded-full bg-yellow-400 py-3 text-sm font-semibold text-yellow-900 transition-colors hover:bg-yellow-500"
       >
         카카오톡 공유
       </button>
       <button
         onClick={handleSaveImage}
-        className="flex-1 rounded-2xl bg-stone-200 py-3 text-sm font-semibold text-stone-700 transition-colors hover:bg-stone-300"
+        className="flex-1 rounded-full bg-[#495867] py-3 text-sm font-semibold text-white transition-colors hover:bg-[#577399]"
       >
         이미지 저장
       </button>

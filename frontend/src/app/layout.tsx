@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "무디시 — 오늘 기분, 어떤 맛?",
+  title: "Moodish — 오늘 기분, 어떤 맛?",
   description:
-    "기분에 따라 AI가 추천해주는 맞춤 레시피 서비스. 오늘의 감정을 골라보세요!",
+    "기분에 따라 AI가 추천해주는 맞춤 한국 가정식 레시피 서비스. 감정을 선택하면 따뜻한 레시피가 완성됩니다.",
 };
 
 export default function RootLayout({

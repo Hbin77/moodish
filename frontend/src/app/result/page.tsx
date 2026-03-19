@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import RecipeCard from "@/components/RecipeCard";
 import ShareButtons from "@/components/ShareButtons";
 import { Recipe } from "@/lib/types";
@@ -21,7 +23,7 @@ export default function ResultPage() {
 
   useEffect(() => {
     if (!recipe) {
-      router.replace("/");
+      router.replace("/mood");
     }
   }, [recipe, router]);
 
@@ -35,17 +37,21 @@ export default function ResultPage() {
   if (!recipe) return null;
 
   return (
-    <div className="flex min-h-screen items-start justify-center px-4 py-12">
-      <main className="flex w-full max-w-md flex-col gap-5">
-        <RecipeCard ref={cardRef} recipe={recipe} />
-        <ShareButtons recipe={recipe} cardRef={cardRef} />
-        <button
-          onClick={() => router.push("/")}
-          className="w-full rounded-2xl border-2 border-orange-200 py-3 text-sm font-semibold text-stone-600 transition-colors hover:bg-orange-50"
-        >
-          다른 레시피 받기
-        </button>
+    <>
+      <Navbar />
+      <main className="flex min-h-screen items-start justify-center px-4 pt-28 pb-16">
+        <div className="flex w-full max-w-md flex-col gap-5">
+          <RecipeCard ref={cardRef} recipe={recipe} />
+          <ShareButtons recipe={recipe} cardRef={cardRef} />
+          <button
+            onClick={() => router.push("/mood")}
+            className="w-full rounded-full border-2 border-[#BDD5EA] py-3 text-sm font-semibold text-[#495867] transition-colors hover:bg-[#BDD5EA]/20"
+          >
+            다른 레시피 받기
+          </button>
+        </div>
       </main>
-    </div>
+      <Footer />
+    </>
   );
 }

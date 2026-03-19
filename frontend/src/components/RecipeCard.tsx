@@ -12,49 +12,58 @@ const RecipeCard = forwardRef<HTMLDivElement, RecipeCardProps>(
     return (
       <div
         ref={ref}
-        className="rounded-3xl border-2 border-orange-100 bg-white p-6 shadow-sm"
+        className="overflow-hidden rounded-2xl border border-[#BDD5EA] bg-white shadow-sm"
       >
-        <p className="mb-4 text-sm italic text-amber-600">{recipe.reaction}</p>
-
-        <h2 className="mb-2 text-2xl font-bold text-stone-800">
-          {recipe.recipe_name}
-        </h2>
-
-        <p className="mb-5 text-sm text-stone-500">{recipe.description}</p>
-
-        <div className="mb-4 flex gap-2">
-          <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700">
-            {recipe.cooking_time}
-          </span>
-          <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-medium text-orange-700">
-            {recipe.difficulty}
-          </span>
+        <div className="bg-[#BDD5EA]/20 p-5">
+          <p className="text-base italic text-[#FE5F55]">{recipe.reaction}</p>
         </div>
 
-        <div className="mb-5">
-          <h3 className="mb-2 text-sm font-semibold text-stone-700">재료</h3>
-          <ul className="grid grid-cols-2 gap-1 text-sm text-stone-600">
-            {recipe.ingredients.map((ing, i) => (
-              <li key={i}>
-                {ing.name}{" "}
-                <span className="text-stone-400">{ing.amount}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <div className="p-6">
+          <h2 className="mb-2 text-2xl font-bold text-[#495867]">
+            {recipe.recipe_name}
+          </h2>
 
-        <div>
-          <h3 className="mb-2 text-sm font-semibold text-stone-700">만드는 법</h3>
-          <ol className="flex flex-col gap-2 text-sm text-stone-600">
-            {recipe.steps.map((step, i) => (
-              <li key={i} className="flex gap-2">
-                <span className="flex-shrink-0 font-semibold text-amber-500">
-                  {i + 1}.
-                </span>
-                {step}
-              </li>
-            ))}
-          </ol>
+          <p className="mb-5 text-sm italic text-[#577399]">
+            {recipe.description}
+          </p>
+
+          <div className="mb-5 flex gap-2">
+            <span className="rounded-full bg-[#BDD5EA]/30 px-3 py-1 text-sm text-[#577399]">
+              {recipe.cooking_time}
+            </span>
+            <span className="rounded-full bg-[#BDD5EA]/30 px-3 py-1 text-sm text-[#577399]">
+              {recipe.difficulty}
+            </span>
+          </div>
+
+          <div className="mb-5">
+            <h3 className="mb-2 text-sm font-semibold text-[#495867]">재료</h3>
+            <ul className="grid grid-cols-2 gap-1 text-sm text-[#495867]">
+              {recipe.ingredients.map((ing, i) => (
+                <li key={i} className="flex items-start gap-1.5">
+                  <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[#FE5F55]" />
+                  <span>
+                    {ing.name}{" "}
+                    <span className="text-[#577399]">{ing.amount}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="mb-2 text-sm font-semibold text-[#495867]">만드는 법</h3>
+            <ol className="flex flex-col gap-3 text-sm text-[#495867]">
+              {recipe.steps.map((step, i) => (
+                <li key={i} className="flex gap-3">
+                  <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-[#FE5F55] text-xs font-bold text-white">
+                    {i + 1}
+                  </span>
+                  <span className="pt-0.5">{step}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
         </div>
       </div>
     );

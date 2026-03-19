@@ -1,7 +1,7 @@
 import { Recipe } from "./types";
 
 export async function fetchRecipe(
-  moodEmoji: string,
+  moodValue: string,
   moodText: string | null
 ): Promise<Recipe> {
   const res = await fetch(
@@ -9,7 +9,7 @@ export async function fetchRecipe(
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ mood_emoji: moodEmoji, mood_text: moodText }),
+      body: JSON.stringify({ mood_emoji: moodValue, mood_text: moodText }),
     }
   );
 
