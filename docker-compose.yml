@@ -7,6 +7,8 @@ services:
       - ./backend/.env
     environment:
       - ALLOWED_ORIGINS=http://frontend:3000
+    volumes:
+      - recipe-data:/app/data
     restart: unless-stopped
 
   frontend:
@@ -21,3 +23,6 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+
+volumes:
+  recipe-data:
