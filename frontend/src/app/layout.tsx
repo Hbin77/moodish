@@ -17,6 +17,13 @@ export const metadata: Metadata = {
   title: "Moodish — 오늘 기분, 어떤 맛?",
   description:
     "기분에 따라 AI가 추천해주는 맞춤 한국 가정식 레시피 서비스. 감정을 선택하면 따뜻한 레시피가 완성됩니다.",
+  icons: {
+    icon: [
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export default function RootLayout({

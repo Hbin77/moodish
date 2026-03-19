@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { MenuIcon, XIcon } from "./Icons";
 
 export default function Navbar() {
@@ -11,7 +12,8 @@ export default function Navbar() {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-ghost-white border-b border-pale-sky">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
-          <Link href="/" className="text-xl font-bold text-slate-blue">
+          <Link href="/" className="flex items-center gap-2 text-xl font-bold text-slate-blue">
+            <Image src="/logo.png" alt="Moodish" width={32} height={32} />
             Moodish
           </Link>
 
