@@ -21,6 +21,7 @@ services:
       - ALLOWED_ORIGINS=http://frontend:3000
       - DATABASE_URL=postgresql://moodish:${POSTGRES_PASSWORD:-moodish_dev_pw}@postgres:5432/moodish
       - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
+      - TURNSTILE_SECRET_KEY=${TURNSTILE_SECRET_KEY:-}
     volumes:
       - recipe-data:/app/data
     depends_on:
