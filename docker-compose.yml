@@ -32,6 +32,7 @@ services:
       context: ./frontend
       args:
         NEXT_PUBLIC_KAKAO_JS_KEY: ${KAKAO_JS_KEY:-}
+        NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${TURNSTILE_SITE_KEY:-0x4AAAAAACtNrcP0z6UMMxA1}
     ports:
       - "3091:3000"
     environment:
