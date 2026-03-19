@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 
 
 _JSON_FORMAT = """{
@@ -34,16 +35,96 @@ _DETAIL_INSTRUCTIONS = """
 """
 
 
-def build_recipe_prompt(mood_emoji: str, mood_text: str | None) -> list[dict]:
+def _get_season() -> str:
+    month = datetime.now().month
+    if month in (3, 4, 5):
+        return "봄"
+    elif month in (6, 7, 8):
+        return "여름"
+    elif month in (9, 10, 11):
+        return "가을"
+    else:
+        return "겨울"
+
+
+def _build_context(age: int | None) -> str:
+    now = datetime.now()
+    season = _get_season()
+    date_str = now.strftime("%Y년 %m월 %d일")
+    hour = now.hour
+
+    if hour < 11:
+        time_of_day = "아침"
+    elif hour < 14:
+        time_of_day = "점심"
+    elif hour < 17:
+        time_of_day = "오후"
+    else:
+        time_of_day = "저녁"
+
+    context = f"현재: {date_str} {time_of_day}, 계절: {season}"
+
+    if age:
+        if age <= 12:
+            context += f", 사용자: {age}세 어린이 (아이가 좋아하는 맛, 영양 균형 고려)"
+        elif age <= 19:
+            context += f", 사용자: {age}세 청소년 (성장기 영양소, 든든한 식사 고려)"
+        elif age <= 35:
+            context += f", 사용자: {age}세 청년 (간편하면서도 맛있는 요리 선호)"
+        elif age <= 55:
+            context += f", 사용자: {age}세 중년 (건강과 맛의 균형 고려)"
+        else:
+            context += f", 사용자: {age}세 (소화가 잘 되고 건강에 좋은 요리 고려)"
+
+    return context
+
+
+def _build_personalization_instruction(age: int | None) -> str:
+    season = _get_season()
+    parts = [
+        f"\n## 개인화 추천 규칙:",
+        f"- 현재 {season}이므로 제철 재료와 계절에 맞는 요리를 우선 추천",
+    ]
+
+    if season == "여름":
+        parts.append("- 여름: 시원한 국물, 냉면, 냉국, 상큼한 요리 선호")
+    elif season == "겨울":
+        parts.append("- 겨울: 따뜻한 국물, 찌개, 전골, 뜨끈한 요리 선호")
+    elif season == "봄":
+        parts.append("- 봄: 봄나물, 산채, 가벼운 요리 선호")
+    else:
+        parts.append("- 가을: 제철 버섯, 고구마, 풍성한 가을 요리 선호")
+
+    now = datetime.now()
+    if now.hour < 11:
+        parts.append("- 아침 시간대: 가볍고 속 편한 아침 식사 추천")
+    elif now.hour >= 21:
+        parts.append("- 야식 시간대: 간단하면서 위에 부담 적은 야식 추천")
+
+    if age:
+        if age <= 12:
+            parts.append("- 어린이: 맵지 않고, 재미있는 모양/이름의 요리, 편식 방지 고려")
+        elif age <= 19:
+            parts.append("- 청소년: 양이 넉넉하고, 탄수화물과 단백질 충분한 요리")
+
+    return "\n".join(parts)
+
+
+def build_recipe_prompt(mood_emoji: str, mood_text: str | None, age: int | None = None) -> list[dict]:
+    context = _build_context(age)
+    personalization = _build_personalization_instruction(age)
+
     system = (
         "당신은 따뜻한 한국 가정식 요리사입니다. "
-        "사용자의 기분을 읽고, 그 기분에 어울리는 요리 레시피를 추천해주세요. "
+        "사용자의 기분, 현재 날짜/시간/계절, 나이를 종합적으로 고려하여 "
+        "가장 어울리는 요리 레시피를 추천해주세요. "
         "요리 초보자도 그대로 따라하면 완성할 수 있도록 상세하게 작성해야 합니다.\n\n"
-        f"{_DETAIL_INSTRUCTIONS}\n"
+        f"{_DETAIL_INSTRUCTIONS}"
+        f"{personalization}\n\n"
         f"반드시 다음 JSON 형식으로만 응답하세요:\n{_JSON_FORMAT}"
     )
 
-    user_parts = [mood_emoji]
+    user_parts = [f"[{context}]", mood_emoji]
     if mood_text:
         user_parts.append(mood_text)
 
@@ -57,17 +138,23 @@ def build_recipe_prompt_with_candidates(
     mood_value: str,
     mood_text: str | None,
     candidates: list[dict],
+    age: int | None = None,
 ) -> list[dict]:
+    context = _build_context(age)
+    personalization = _build_personalization_instruction(age)
+
     system = (
         "당신은 따뜻한 한국 가정식 요리사입니다. "
         "아래에 여러 출처에서 수집한 레시피 후보들이 주어집니다. "
-        "사용자의 기분에 가장 어울리는 레시피를 하나 골라 한국어로 재구성해주세요. "
+        "사용자의 기분, 현재 날짜/시간/계절, 나이를 종합적으로 고려하여 "
+        "가장 어울리는 레시피를 하나 골라 한국어로 재구성해주세요. "
         "필요하면 여러 후보를 참고해 조합하거나 변형해도 좋습니다. "
         "따뜻한 공감 메시지도 함께 작성해주세요.\n\n"
         "중요: 후보의 재료와 단계 정보가 부족할 수 있습니다. "
         "그 경우 당신의 요리 지식으로 재료 분량과 조리 단계를 보완하여 "
         "초보자도 따라할 수 있도록 상세하게 완성해주세요.\n\n"
-        f"{_DETAIL_INSTRUCTIONS}\n"
+        f"{_DETAIL_INSTRUCTIONS}"
+        f"{personalization}\n\n"
         f"반드시 다음 JSON 형식으로만 응답하세요:\n{_JSON_FORMAT}"
     )
 
@@ -83,6 +170,7 @@ def build_recipe_prompt_with_candidates(
         candidate_summaries.append(summary)
 
     user_content = (
+        f"[{context}]\n"
         f"내 기분: {mood_value}"
         + (f" ({mood_text})" if mood_text else "")
         + f"\n\n레시피 후보 목록:\n{json.dumps(candidate_summaries, ensure_ascii=False, indent=2)}"

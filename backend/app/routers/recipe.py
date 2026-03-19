@@ -8,7 +8,7 @@ router = APIRouter(prefix="/api")
 
 @router.post("/recipe", response_model=RecipeResponse)
 async def create_recipe(request: RecipeRequest):
-    result = await generate_recipe(request.mood_emoji, request.mood_text)
+    result = await generate_recipe(request.mood_emoji, request.mood_text, request.age)
     return result
 
 

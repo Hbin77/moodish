@@ -2,16 +2,20 @@ import { Recipe } from "./types";
 
 export async function fetchRecipe(
   moodValue: string,
-  moodText: string | null
+  moodText: string | null,
+  age: number | null = null
 ): Promise<Recipe> {
-  const res = await fetch(
-    `/api/recipe`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ mood_emoji: moodValue, mood_text: moodText }),
-    }
-  );
+  const body: Record<string, unknown> = {
+    mood_emoji: moodValue,
+    mood_text: moodText,
+  };
+  if (age) body.age = age;
+
+  const res = await fetch(`/api/recipe`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
 
   if (!res.ok) {
     throw new Error("레시피를 가져오는 데 실패했습니다.");
