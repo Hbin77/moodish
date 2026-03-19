@@ -6,7 +6,9 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.auth.models import init_user_db
 from app.database import get_db, init_db
+from app.routers.auth import router as auth_router
 from app.routers.recipe import router as recipe_router
 from app.routers.recipebook import router as recipebook_router
 
@@ -19,6 +21,7 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     # Startup
     await init_db()
+    await init_user_db()
     # Auto-collect if DB is empty
     db = await get_db()
     try:
@@ -49,9 +52,10 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["Content-Type"],
+    allow_methods=["GET", "POST", "PUT", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
+app.include_router(auth_router)
 app.include_router(recipe_router)
 app.include_router(recipebook_router)

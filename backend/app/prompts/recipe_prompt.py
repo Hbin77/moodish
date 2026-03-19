@@ -79,6 +79,46 @@ def _build_context(age: int | None) -> str:
     return context
 
 
+def _build_user_context(user_profile: dict | None) -> str:
+    if not user_profile:
+        return ""
+
+    parts = []
+    gender = user_profile.get("gender")
+    if gender:
+        parts.append(f"성별: {gender}")
+
+    dietary = user_profile.get("dietary")
+    if dietary:
+        parts.append(f"식이 제한: {dietary}")
+
+    if not parts:
+        return ""
+    return ", " + ", ".join(parts)
+
+
+def _build_dietary_instruction(user_profile: dict | None) -> str:
+    if not user_profile:
+        return ""
+
+    dietary = user_profile.get("dietary") or ""
+    if not dietary:
+        return ""
+
+    parts = ["\n## 식이 제한 규칙 (반드시 준수):"]
+    items = [d.strip() for d in dietary.split(",") if d.strip()]
+
+    for item in items:
+        if "채식" in item:
+            parts.append("- 채식주의: 육류(소고기, 돼지고기, 닭고기 등)를 절대 포함하지 않기")
+        if "글루텐프리" in item:
+            parts.append("- 글루텐프리: 밀가루, 빵, 파스타 등 글루텐 함유 재료 제외")
+        if item not in ("채식", "글루텐프리"):
+            parts.append(f"- {item}: 해당 제한 사항 준수")
+
+    return "\n".join(parts)
+
+
 def _build_personalization_instruction(age: int | None) -> str:
     season = _get_season()
     parts = [
@@ -110,9 +150,15 @@ def _build_personalization_instruction(age: int | None) -> str:
     return "\n".join(parts)
 
 
-def build_recipe_prompt(mood_emoji: str, mood_text: str | None, age: int | None = None) -> list[dict]:
-    context = _build_context(age)
+def build_recipe_prompt(
+    mood_emoji: str,
+    mood_text: str | None,
+    age: int | None = None,
+    user_profile: dict | None = None,
+) -> list[dict]:
+    context = _build_context(age) + _build_user_context(user_profile)
     personalization = _build_personalization_instruction(age)
+    dietary_instruction = _build_dietary_instruction(user_profile)
 
     system = (
         "당신은 따뜻한 한국 가정식 요리사입니다. "
@@ -120,7 +166,8 @@ def build_recipe_prompt(mood_emoji: str, mood_text: str | None, age: int | None 
         "가장 어울리는 요리 레시피를 추천해주세요. "
         "요리 초보자도 그대로 따라하면 완성할 수 있도록 상세하게 작성해야 합니다.\n\n"
         f"{_DETAIL_INSTRUCTIONS}"
-        f"{personalization}\n\n"
+        f"{personalization}"
+        f"{dietary_instruction}\n\n"
         f"반드시 다음 JSON 형식으로만 응답하세요:\n{_JSON_FORMAT}"
     )
 
@@ -139,9 +186,11 @@ def build_recipe_prompt_with_candidates(
     mood_text: str | None,
     candidates: list[dict],
     age: int | None = None,
+    user_profile: dict | None = None,
 ) -> list[dict]:
-    context = _build_context(age)
+    context = _build_context(age) + _build_user_context(user_profile)
     personalization = _build_personalization_instruction(age)
+    dietary_instruction = _build_dietary_instruction(user_profile)
 
     system = (
         "당신은 따뜻한 한국 가정식 요리사입니다. "
@@ -154,7 +203,8 @@ def build_recipe_prompt_with_candidates(
         "그 경우 당신의 요리 지식으로 재료 분량과 조리 단계를 보완하여 "
         "초보자도 따라할 수 있도록 상세하게 완성해주세요.\n\n"
         f"{_DETAIL_INSTRUCTIONS}"
-        f"{personalization}\n\n"
+        f"{personalization}"
+        f"{dietary_instruction}\n\n"
         f"반드시 다음 JSON 형식으로만 응답하세요:\n{_JSON_FORMAT}"
     )
 

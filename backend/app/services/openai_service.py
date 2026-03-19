@@ -23,14 +23,21 @@ def _get_client() -> AsyncOpenAI:
     return _client
 
 
-async def generate_recipe(mood_emoji: str, mood_text: str | None, age: int | None = None) -> dict:
+async def generate_recipe(
+    mood_emoji: str,
+    mood_text: str | None,
+    age: int | None = None,
+    user_profile: dict | None = None,
+) -> dict:
     candidates = await fetch_all_recipes(mood_emoji, mood_text)
 
     if candidates:
-        messages = build_recipe_prompt_with_candidates(mood_emoji, mood_text, candidates, age)
+        messages = build_recipe_prompt_with_candidates(
+            mood_emoji, mood_text, candidates, age, user_profile=user_profile
+        )
         logger.info("후보 %d개로 레시피 선택 요청", len(candidates))
     else:
-        messages = build_recipe_prompt(mood_emoji, mood_text, age)
+        messages = build_recipe_prompt(mood_emoji, mood_text, age, user_profile=user_profile)
         logger.info("후보 없음 — 순수 OpenAI 생성으로 폴백")
 
     try:
