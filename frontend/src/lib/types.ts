@@ -18,3 +18,26 @@ export interface Recipe {
   difficulty: string;
   description: string;
 }
+
+export interface RecipeBookItem {
+  id: number;
+  name: string;
+  category: string;
+  ingredients: string;
+  cooking_time: string;
+  difficulty: string;
+  source: string;
+  image_url: string;
+}
+
+export interface RecipeBookResponse {
+  recipes: RecipeBookItem[];
+  total: number;
+  page: number;
+  pages: number;
+}
+
+export interface CategoryItem {
+  category: string;
+  count: number;
+}

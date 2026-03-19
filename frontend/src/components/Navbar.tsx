@@ -24,6 +24,9 @@ export default function Navbar() {
             <Link href="/mood" className="text-glaucous hover:text-slate-blue transition-colors">
               레시피 받기
             </Link>
+            <Link href="/recipes" className="text-glaucous hover:text-slate-blue transition-colors">
+              레시피 북
+            </Link>
             <Link
               href="/mood"
               className="rounded-full bg-coral px-5 py-2 text-sm font-semibold text-white hover:opacity-90 transition-opacity"
@@ -63,6 +66,13 @@ export default function Navbar() {
               onClick={() => setMobileOpen(false)}
             >
               레시피 받기
+            </Link>
+            <Link
+              href="/recipes"
+              className="text-glaucous hover:text-slate-blue transition-colors py-2"
+              onClick={() => setMobileOpen(false)}
+            >
+              레시피 북
             </Link>
             <Link
               href="/mood"

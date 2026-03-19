@@ -17,6 +17,9 @@ export default function Footer() {
             <Link href="/mood" className="text-pale-sky hover:text-ghost-white transition-colors">
               레시피 받기
             </Link>
+            <Link href="/recipes" className="text-pale-sky hover:text-ghost-white transition-colors">
+              레시피 북
+            </Link>
           </div>
 
           <p className="text-sm text-pale-sky">&copy; 2026 Moodish</p>
