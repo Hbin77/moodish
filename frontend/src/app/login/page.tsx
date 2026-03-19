@@ -1,10 +1,45 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/lib/auth-context";
 import { registerUser, loginUser } from "@/lib/auth-api";
+
+declare global {
+  interface Window {
+    turnstile?: {
+      render: (container: HTMLElement, options: Record<string, unknown>) => string;
+      reset: (widgetId: string) => void;
+      remove: (widgetId: string) => void;
+    };
+  }
+}
+
+function TurnstileWidget({ onVerify }: { onVerify: (token: string) => void }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const widgetIdRef = useRef<string | null>(null);
+
+  const setupRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      containerRef.current = node;
+      if (!node || widgetIdRef.current) return;
+      const interval = setInterval(() => {
+        if (window.turnstile) {
+          clearInterval(interval);
+          widgetIdRef.current = window.turnstile.render(node, {
+            sitekey: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "",
+            callback: (token: string) => onVerify(token),
+            theme: "light",
+          });
+        }
+      }, 100);
+    },
+    [onVerify]
+  );
+
+  return <div ref={setupRef} className="flex justify-center" />;
+}
 
 const DIETARY_OPTIONS = [
   "채식",
@@ -21,6 +56,7 @@ export default function LoginPage() {
   const [tab, setTab] = useState<"login" | "register">("login");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
   // login fields
   const [email, setEmail] = useState("");
@@ -36,10 +72,14 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!turnstileToken) {
+      setError("로봇 인증을 완료해주세요.");
+      return;
+    }
     setError(null);
     setSubmitting(true);
     try {
-      const res = await loginUser({ email, password });
+      const res = await loginUser({ email, password, turnstile_token: turnstileToken });
       login(res.access_token, res.user);
       router.push("/mood");
     } catch (err) {
@@ -51,6 +91,10 @@ export default function LoginPage() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!turnstileToken) {
+      setError("로봇 인증을 완료해주세요.");
+      return;
+    }
     setError(null);
     setSubmitting(true);
     try {
@@ -61,6 +105,7 @@ export default function LoginPage() {
         age: regAge ? parseInt(regAge, 10) : undefined,
         gender: regGender || undefined,
         dietary: regDietary.length > 0 ? regDietary.join(",") : undefined,
+        turnstile_token: turnstileToken!,
       });
       login(res.access_token, res.user);
       router.push("/mood");
@@ -159,9 +204,10 @@ export default function LoginPage() {
                     className={inputClass}
                   />
                 </div>
+                <TurnstileWidget onVerify={setTurnstileToken} />
                 <button
                   type="submit"
-                  disabled={submitting}
+                  disabled={submitting || !turnstileToken}
                   className="w-full rounded-full bg-[#FE5F55] py-3 text-sm font-semibold text-white transition-colors hover:bg-[#e5534b] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {submitting ? "로그인 중..." : "로그인"}
@@ -261,9 +307,10 @@ export default function LoginPage() {
                     ))}
                   </div>
                 </div>
+                <TurnstileWidget onVerify={setTurnstileToken} />
                 <button
                   type="submit"
-                  disabled={submitting}
+                  disabled={submitting || !turnstileToken}
                   className="w-full rounded-full bg-[#FE5F55] py-3 text-sm font-semibold text-white transition-colors hover:bg-[#e5534b] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {submitting ? "가입 중..." : "회원가입"}

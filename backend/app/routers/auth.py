@@ -7,6 +7,7 @@ from app.auth.dependencies import require_user
 from app.auth.jwt_utils import create_token
 from app.auth.models import get_pool
 from app.auth.oauth import google_get_user, kakao_get_user
+from app.auth.turnstile import verify_turnstile
 from app.auth.schemas import (
     OAuthCallback,
     TokenResponse,
@@ -66,6 +67,7 @@ async def _get_or_create_oauth_user(
 
 @router.post("/register", response_model=TokenResponse)
 async def register(body: UserRegister):
+    await verify_turnstile(body.turnstile_token)
     pool = await get_pool()
     async with pool.acquire() as conn:
         existing = await conn.fetchrow(
@@ -93,6 +95,7 @@ async def register(body: UserRegister):
 
 @router.post("/login", response_model=TokenResponse)
 async def login(body: UserLogin):
+    await verify_turnstile(body.turnstile_token)
     pool = await get_pool()
     async with pool.acquire() as conn:
         row = await conn.fetchrow(

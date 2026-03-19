@@ -8,11 +8,13 @@ class UserRegister(BaseModel):
     age: int | None = Field(default=None, ge=1, le=120)
     gender: str | None = Field(default=None, max_length=10)
     dietary: str | None = Field(default=None, max_length=500)
+    turnstile_token: str
 
 
 class UserLogin(BaseModel):
     email: str
     password: str
+    turnstile_token: str
 
 
 class UserProfile(BaseModel):
