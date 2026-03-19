@@ -7,6 +7,8 @@ export interface MoodOption {
 export interface Ingredient {
   name: string;
   amount: string;
+  optional?: boolean;
+  substitute?: string | null;
 }
 
 export interface Recipe {

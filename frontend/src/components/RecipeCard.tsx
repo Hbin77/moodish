@@ -38,13 +38,21 @@ const RecipeCard = forwardRef<HTMLDivElement, RecipeCardProps>(
 
           <div className="mb-5">
             <h3 className="mb-2 text-sm font-semibold text-[#495867]">재료</h3>
-            <ul className="grid grid-cols-2 gap-1 text-sm text-[#495867]">
+            <ul className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm text-[#495867]">
               {recipe.ingredients.map((ing, i) => (
                 <li key={i} className="flex items-start gap-1.5">
-                  <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[#FE5F55]" />
+                  <span className={`mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full ${ing.optional ? "bg-[#BDD5EA]" : "bg-[#FE5F55]"}`} />
                   <span>
                     {ing.name}{" "}
                     <span className="text-[#577399]">{ing.amount}</span>
+                    {ing.optional && (
+                      <span className="ml-1 text-xs text-[#BDD5EA]">(생략 가능)</span>
+                    )}
+                    {ing.substitute && (
+                      <span className="block text-xs text-[#577399]/70">
+                        → 대체: {ing.substitute}
+                      </span>
+                    )}
                   </span>
                 </li>
               ))}

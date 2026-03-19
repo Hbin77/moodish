@@ -4,6 +4,8 @@ from pydantic import BaseModel, Field
 class Ingredient(BaseModel):
     name: str
     amount: str
+    optional: bool = False
+    substitute: str | None = None
 
 
 class RecipeRequest(BaseModel):

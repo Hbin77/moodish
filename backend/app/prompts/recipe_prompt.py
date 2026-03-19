@@ -6,10 +6,11 @@ _JSON_FORMAT = """{
   "reaction": "사용자 기분에 대한 따뜻한 공감 한마디 (2~3문장)",
   "recipe_name": "요리 이름",
   "ingredients": [
-    {"name": "재료명 (예: 돼지고기 목살)", "amount": "정확한 양 (예: 300g)"}
+    {"name": "재료명", "amount": "정확한 양", "optional": false, "substitute": null},
+    {"name": "선택 재료", "amount": "양", "optional": true, "substitute": "대체 가능한 재료"}
   ],
   "steps": [
-    "1단계: 구체적인 조리 설명 (불 세기, 시간, 상태 변화 포함)"
+    "구체적인 조리 설명 (불 세기, 시간, 상태 변화 포함)"
   ],
   "cooking_time": "예: 30분",
   "difficulty": "쉬움 또는 보통 또는 어려움",
@@ -24,6 +25,9 @@ _DETAIL_INSTRUCTIONS = """
 - "적당량", "약간" 대신 구체적 수치 사용 (예: "소금 약간" → "소금 1/2작은술")
 - 양념장이 필요하면 양념 재료도 각각 분리해서 기재
 - 1인분 기준으로 작성
+- 없어도 요리가 가능한 재료는 optional: true로 표시
+- 구하기 어려운 재료는 substitute에 대체 재료를 명시 (예: "파마산 치즈" → substitute: "체다 치즈 또는 모차렐라")
+- 핵심 재료(메인 재료, 기본 양념)는 optional: false, substitute: null
 
 ### 조리 단계 (steps)
 - 최소 5단계 이상, 각 단계를 상세하게 작성
