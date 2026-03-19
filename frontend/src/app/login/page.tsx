@@ -275,16 +275,22 @@ export default function LoginPage() {
                   <label className="mb-1.5 block text-sm font-medium text-[#577399]">
                     성별 (선택)
                   </label>
-                  <select
-                    value={regGender}
-                    onChange={(e) => setRegGender(e.target.value)}
-                    className={inputClass}
-                  >
-                    <option value="">선택 안함</option>
-                    <option value="남성">남성</option>
-                    <option value="여성">여성</option>
-                    <option value="기타">기타</option>
-                  </select>
+                  <div className="mt-1 flex gap-2">
+                    {["남성", "여성", "기타"].map((g) => (
+                      <button
+                        key={g}
+                        type="button"
+                        onClick={() => setRegGender(regGender === g ? "" : g)}
+                        className={`flex-1 rounded-xl border py-3 text-sm font-medium transition-colors ${
+                          regGender === g
+                            ? "border-[#FE5F55] bg-[#FE5F55]/10 text-[#FE5F55]"
+                            : "border-[#BDD5EA] text-[#577399] hover:border-[#577399]"
+                        }`}
+                      >
+                        {g}
+                      </button>
+                    ))}
+                  </div>
                 </div>
                 <div>
                   <label className="mb-1.5 block text-sm font-medium text-[#577399]">
