@@ -1,19 +1,24 @@
+import logging
 import os
+
 import httpx
 from fastapi import HTTPException
 
-TURNSTILE_SECRET = os.getenv("TURNSTILE_SECRET_KEY", "")
+logger = logging.getLogger(__name__)
+
 VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
 
 
 async def verify_turnstile(token: str) -> None:
-    if not TURNSTILE_SECRET:
+    secret = os.getenv("TURNSTILE_SECRET_KEY", "")
+    if not secret:
+        logger.warning("TURNSTILE_SECRET_KEY is not set — skipping verification")
         return
 
     async with httpx.AsyncClient(timeout=10) as client:
         resp = await client.post(
             VERIFY_URL,
-            data={"secret": TURNSTILE_SECRET, "response": token},
+            data={"secret": secret, "response": token},
         )
 
     result = resp.json()

@@ -1,5 +1,10 @@
-import asyncpg
 import os
+
+import asyncpg
+
+_db_url = os.getenv("DATABASE_URL")
+if not _db_url:
+    raise RuntimeError("DATABASE_URL environment variable is not set")
 
 _pool = None
 
@@ -7,7 +12,7 @@ _pool = None
 async def get_pool():
     global _pool
     if _pool is None:
-        _pool = await asyncpg.create_pool(os.getenv("DATABASE_URL"))
+        _pool = await asyncpg.create_pool(_db_url)
     return _pool
 
 

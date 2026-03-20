@@ -153,17 +153,14 @@ async def collect_recipes() -> int:
     db = await get_db()
     inserted = 0
     try:
+        # Fetch all existing recipe names in one query to avoid N+1
+        cursor = await db.execute("SELECT name FROM recipes")
+        rows = await cursor.fetchall()
+        existing_names = {r["name"] for r in rows}
+
         for recipe in all_recipes:
             name = recipe.get("name", "").strip()
-            if not name:
-                continue
-
-            # Check duplicate
-            cursor = await db.execute(
-                "SELECT id FROM recipes WHERE name = ?", (name,)
-            )
-            existing = await cursor.fetchone()
-            if existing:
+            if not name or name in existing_names:
                 continue
 
             steps = recipe.get("steps", [])
@@ -173,7 +170,7 @@ async def collect_recipes() -> int:
                 steps_json = json.dumps([steps], ensure_ascii=False)
 
             await db.execute(
-                """INSERT INTO recipes (name, category, ingredients, steps, source, image_url)
+                """INSERT OR IGNORE INTO recipes (name, category, ingredients, steps, source, image_url)
                    VALUES (?, ?, ?, ?, ?, ?)""",
                 (
                     name,
@@ -184,6 +181,7 @@ async def collect_recipes() -> int:
                     recipe.get("image_url", ""),
                 ),
             )
+            existing_names.add(name)
             inserted += 1
 
         await db.commit()

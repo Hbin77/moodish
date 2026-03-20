@@ -7,7 +7,7 @@ export async function fetchRecipeBook(params: {
   source?: string;
 }): Promise<RecipeBookResponse> {
   const searchParams = new URLSearchParams();
-  if (params.page) searchParams.set("page", String(params.page));
+  if (params.page != null) searchParams.set("page", String(params.page));
   if (params.category) searchParams.set("category", params.category);
   if (params.search) searchParams.set("search", params.search);
   if (params.source) searchParams.set("source", params.source);

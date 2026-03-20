@@ -52,21 +52,20 @@ export default function RecipeDetailModal({
 }) {
   const [detail, setDetail] = useState<RecipeDetail | null>(null);
   const [loading, setLoading] = useState(false);
-  const [prevId, setPrevId] = useState<number | null>(null);
 
-  if (recipeId !== prevId) {
-    setPrevId(recipeId);
+  useEffect(() => {
     if (!recipeId) {
-      setDetail(null);
-      setLoading(false);
-    } else {
-      setLoading(true);
-      fetchRecipeDetail(recipeId)
-        .then(setDetail)
-        .catch(() => setDetail(null))
-        .finally(() => setLoading(false));
+      setDetail(null); // eslint-disable-line react-hooks/set-state-in-effect
+      return;
     }
-  }
+    let cancelled = false;
+    setLoading(true);
+    fetchRecipeDetail(recipeId)
+      .then((data) => { if (!cancelled) setDetail(data); })
+      .catch(() => { if (!cancelled) setDetail(null); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [recipeId]);
 
   useEffect(() => {
     if (!recipeId) return;

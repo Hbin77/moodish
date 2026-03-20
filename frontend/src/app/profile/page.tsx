@@ -5,15 +5,7 @@ import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/lib/auth-context";
 import { updateProfile } from "@/lib/auth-api";
-
-const DIETARY_OPTIONS = [
-  "채식",
-  "글루텐프리",
-  "유제품프리",
-  "할랄",
-  "해산물 알레르기",
-  "견과류 알레르기",
-];
+import { DIETARY_OPTIONS } from "@/constants/dietary";
 
 export default function ProfilePage() {
   const router = useRouter();

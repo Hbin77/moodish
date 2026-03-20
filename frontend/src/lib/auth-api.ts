@@ -69,7 +69,7 @@ export async function kakaoLogin(
   code: string,
   redirectUri: string
 ): Promise<AuthResponse> {
-  const res = await fetch(`${API_BASE}/kakao/callback`, {
+  const res = await fetch(`${API_BASE}/kakao`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ code, redirect_uri: redirectUri }),
@@ -85,7 +85,7 @@ export async function googleLogin(
   code: string,
   redirectUri: string
 ): Promise<AuthResponse> {
-  const res = await fetch(`${API_BASE}/google/callback`, {
+  const res = await fetch(`${API_BASE}/google`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ code, redirect_uri: redirectUri }),

@@ -47,15 +47,29 @@ async def _get_or_create_oauth_user(
 ) -> dict:
     pool = await get_pool()
     async with pool.acquire() as conn:
+        # Check for existing user with same email and provider
         row = await conn.fetchrow(
-            "SELECT * FROM users WHERE email = $1", email
+            "SELECT * FROM users WHERE email = $1 AND provider = $2", email, provider
         )
         if row:
             return dict(row)
 
+        # Check if email exists with a different provider — link accounts
+        existing = await conn.fetchrow(
+            "SELECT * FROM users WHERE email = $1", email
+        )
+        if existing:
+            row = await conn.fetchrow(
+                "UPDATE users SET provider = $1, provider_id = $2 WHERE id = $3 RETURNING *",
+                provider, provider_id, existing["id"],
+            )
+            return dict(row)
+
+        # New user — insert with ON CONFLICT to handle race conditions
         row = await conn.fetchrow(
             """INSERT INTO users (email, name, provider, provider_id)
                VALUES ($1, $2, $3, $4)
+               ON CONFLICT (email) DO UPDATE SET provider = $3, provider_id = $4
                RETURNING *""",
             email,
             name,

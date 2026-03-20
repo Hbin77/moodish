@@ -1,8 +1,9 @@
 import json
 import math
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
+from app.auth.dependencies import require_user
 from app.database import get_db
 from app.services.recipe_collector import collect_recipes
 
@@ -28,8 +29,9 @@ async def list_recipes(
         conditions.append("source = ?")
         params.append(source)
     if search:
-        conditions.append("(name LIKE ? OR ingredients LIKE ?)")
-        params.extend([f"%{search}%", f"%{search}%"])
+        escaped = search.replace("%", "\\%").replace("_", "\\_")
+        conditions.append("(name LIKE ? ESCAPE '\\' OR ingredients LIKE ? ESCAPE '\\')")
+        params.extend([f"%{escaped}%", f"%{escaped}%"])
 
     where = ""
     if conditions:
@@ -130,7 +132,7 @@ async def list_categories():
 
 
 @router.post("/collect")
-async def trigger_collection():
+async def trigger_collection(_user=Depends(require_user)):
     """Manually trigger recipe collection from APIs"""
     count = await collect_recipes()
     return {"message": f"Collected {count} new recipes", "count": count}

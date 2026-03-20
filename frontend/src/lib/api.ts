@@ -10,7 +10,7 @@ export async function fetchRecipe(
     mood_emoji: moodValue,
     mood_text: moodText,
   };
-  if (age) body.age = age;
+  if (age != null) body.age = age;
 
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (token) headers["Authorization"] = `Bearer ${token}`;

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/lib/auth-context";
 import { registerUser, loginUser } from "@/lib/auth-api";
+import { DIETARY_OPTIONS } from "@/constants/dietary";
 
 declare global {
   interface Window {
@@ -16,39 +17,45 @@ declare global {
   }
 }
 
-function TurnstileWidget({ onVerify }: { onVerify: (token: string) => void }) {
+function TurnstileWidget({ onVerify, resetKey }: { onVerify: (token: string) => void; resetKey: number }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const widgetIdRef = useRef<string | null>(null);
 
-  const setupRef = useCallback(
-    (node: HTMLDivElement | null) => {
-      containerRef.current = node;
-      if (!node || widgetIdRef.current) return;
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const node = containerRef.current;
+    let widgetId: string | undefined;
+
+    const tryRender = () => {
+      if (window.turnstile && node) {
+        widgetId = window.turnstile.render(node, {
+          sitekey: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "",
+          callback: onVerify,
+          theme: "light",
+        });
+      }
+    };
+
+    if (window.turnstile) {
+      tryRender();
+    } else {
       const interval = setInterval(() => {
         if (window.turnstile) {
           clearInterval(interval);
-          widgetIdRef.current = window.turnstile.render(node, {
-            sitekey: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "",
-            callback: (token: string) => onVerify(token),
-            theme: "light",
-          });
+          tryRender();
         }
-      }, 100);
-    },
-    [onVerify]
-  );
+      }, 200);
+      return () => clearInterval(interval);
+    }
 
-  return <div ref={setupRef} className="flex justify-center" />;
+    return () => {
+      if (widgetId && window.turnstile) {
+        window.turnstile.remove(widgetId);
+      }
+    };
+  }, [onVerify, resetKey]);
+
+  return <div ref={containerRef} className="flex justify-center" />;
 }
-
-const DIETARY_OPTIONS = [
-  "채식",
-  "글루텐프리",
-  "유제품프리",
-  "할랄",
-  "해산물 알레르기",
-  "견과류 알레르기",
-];
 
 export default function LoginPage() {
   const router = useRouter();
@@ -57,6 +64,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
 
   // login fields
   const [email, setEmail] = useState("");
@@ -147,7 +155,7 @@ export default function LoginPage() {
             <div className="mb-6 flex rounded-xl bg-[#F7F7FF] p-1">
               <button
                 type="button"
-                onClick={() => { setTab("login"); setError(null); }}
+                onClick={() => { setTab("login"); setError(null); setTurnstileToken(null); setTurnstileResetKey((k) => k + 1); }}
                 className={`flex-1 rounded-lg py-2.5 text-sm font-semibold transition-colors ${
                   tab === "login"
                     ? "bg-white text-[#495867] shadow-sm"
@@ -158,7 +166,7 @@ export default function LoginPage() {
               </button>
               <button
                 type="button"
-                onClick={() => { setTab("register"); setError(null); }}
+                onClick={() => { setTab("register"); setError(null); setTurnstileToken(null); setTurnstileResetKey((k) => k + 1); }}
                 className={`flex-1 rounded-lg py-2.5 text-sm font-semibold transition-colors ${
                   tab === "register"
                     ? "bg-white text-[#495867] shadow-sm"
@@ -204,7 +212,7 @@ export default function LoginPage() {
                     className={inputClass}
                   />
                 </div>
-                <TurnstileWidget onVerify={setTurnstileToken} />
+                <TurnstileWidget onVerify={setTurnstileToken} resetKey={turnstileResetKey} />
                 <button
                   type="submit"
                   disabled={submitting || !turnstileToken}
@@ -313,7 +321,7 @@ export default function LoginPage() {
                     ))}
                   </div>
                 </div>
-                <TurnstileWidget onVerify={setTurnstileToken} />
+                <TurnstileWidget onVerify={setTurnstileToken} resetKey={turnstileResetKey} />
                 <button
                   type="submit"
                   disabled={submitting || !turnstileToken}

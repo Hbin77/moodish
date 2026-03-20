@@ -3,7 +3,9 @@ from datetime import datetime, timedelta, timezone
 
 import jwt
 
-SECRET_KEY = os.getenv("JWT_SECRET", "change-me-in-production")
+SECRET_KEY = os.getenv("JWT_SECRET")
+if not SECRET_KEY or len(SECRET_KEY) < 16:
+    raise RuntimeError("JWT_SECRET must be set (min 16 chars)")
 ALGORITHM = "HS256"
 EXPIRE_HOURS = 72
 

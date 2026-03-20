@@ -1,8 +1,8 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
 
 
 class UserRegister(BaseModel):
-    email: str = Field(max_length=255)
+    email: EmailStr = Field(max_length=255)
     password: str = Field(min_length=6, max_length=100)
     name: str = Field(max_length=100)
     age: int | None = Field(default=None, ge=1, le=120)
@@ -12,7 +12,7 @@ class UserRegister(BaseModel):
 
 
 class UserLogin(BaseModel):
-    email: str
+    email: EmailStr
     password: str
     turnstile_token: str
 
@@ -28,10 +28,10 @@ class UserProfile(BaseModel):
 
 
 class UserUpdate(BaseModel):
-    name: str | None = None
-    age: int | None = None
-    gender: str | None = None
-    dietary: str | None = None
+    name: str | None = Field(default=None, max_length=100)
+    age: int | None = Field(default=None, ge=1, le=120)
+    gender: str | None = Field(default=None, max_length=10)
+    dietary: str | None = Field(default=None, max_length=500)
 
 
 class TokenResponse(BaseModel):

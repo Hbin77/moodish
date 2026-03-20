@@ -6,6 +6,7 @@ from fastapi import HTTPException
 from openai import AsyncOpenAI
 
 from app.prompts.recipe_prompt import build_recipe_prompt, build_recipe_prompt_with_candidates
+from app.schemas.recipe import RecipeResponse
 from app.services.recipe_aggregator import fetch_all_recipes
 
 logger = logging.getLogger(__name__)
@@ -50,7 +51,9 @@ async def generate_recipe(
         content = response.choices[0].message.content
         if content is None:
             raise HTTPException(status_code=502, detail="AI 서비스에서 응답을 받지 못했습니다.")
-        return json.loads(content)
+        parsed = json.loads(content)
+        RecipeResponse(**parsed)  # validate structure
+        return parsed
     except HTTPException:
         raise
     except Exception:

@@ -5,6 +5,7 @@ import {
   useContext,
   useState,
   useCallback,
+  useEffect,
   type ReactNode,
 } from "react";
 import { getProfile, type UserProfile } from "./auth-api";
@@ -26,25 +27,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [initialized, setInitialized] = useState(false);
 
-  if (!initialized && typeof window !== "undefined") {
-    setInitialized(true);
+  useEffect(() => {
     const savedToken = localStorage.getItem(TOKEN_KEY);
     if (!savedToken) {
-      setLoading(false);
-    } else {
-      getProfile(savedToken)
-        .then((profile) => {
-          setToken(savedToken);
-          setUser(profile);
-        })
-        .catch(() => {
-          localStorage.removeItem(TOKEN_KEY);
-        })
-        .finally(() => setLoading(false));
+      setLoading(false); // eslint-disable-line react-hooks/set-state-in-effect
+      return;
     }
-  }
+    getProfile(savedToken)
+      .then((profile) => {
+        setToken(savedToken);
+        setUser(profile);
+      })
+      .catch(() => {
+        localStorage.removeItem(TOKEN_KEY);
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
   const login = useCallback((newToken: string, newUser: UserProfile) => {
     localStorage.setItem(TOKEN_KEY, newToken);
