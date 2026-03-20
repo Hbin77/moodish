@@ -130,16 +130,19 @@ export default function LoginPage() {
     );
   };
 
+  const kakaoClientId = process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY;
+  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+
   const handleKakao = () => {
-    const clientId = process.env.NEXT_PUBLIC_KAKAO_REST_API_KEY;
+    if (!kakaoClientId) return;
     const redirectUri = `${window.location.origin}/auth/kakao/callback`;
-    window.location.href = `https://kauth.kakao.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code`;
+    window.location.href = `https://kauth.kakao.com/oauth/authorize?client_id=${kakaoClientId}&redirect_uri=${redirectUri}&response_type=code`;
   };
 
   const handleGoogle = () => {
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    if (!googleClientId) return;
     const redirectUri = `${window.location.origin}/auth/google/callback`;
-    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=email+profile`;
+    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${googleClientId}&redirect_uri=${redirectUri}&response_type=code&scope=email+profile`;
   };
 
   const inputClass =
@@ -333,6 +336,7 @@ export default function LoginPage() {
             )}
 
             {/* OAuth */}
+            {(kakaoClientId || googleClientId) && (
             <div className="mt-6 flex flex-col gap-3">
               <div className="relative my-2">
                 <div className="absolute inset-0 flex items-center">
@@ -342,6 +346,7 @@ export default function LoginPage() {
                   <span className="bg-white px-3 text-[#577399]">또는</span>
                 </div>
               </div>
+              {kakaoClientId && (
               <button
                 type="button"
                 onClick={handleKakao}
@@ -352,6 +357,8 @@ export default function LoginPage() {
                 </svg>
                 카카오로 시작하기
               </button>
+              )}
+              {googleClientId && (
               <button
                 type="button"
                 onClick={handleGoogle}
@@ -365,7 +372,9 @@ export default function LoginPage() {
                 </svg>
                 구글로 시작하기
               </button>
+              )}
             </div>
+            )}
           </div>
         </div>
       </main>
