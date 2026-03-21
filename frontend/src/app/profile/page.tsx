@@ -10,6 +10,7 @@ import { DIETARY_OPTIONS } from "@/constants/dietary";
 export default function ProfilePage() {
   const router = useRouter();
   const { user, token, loading, logout, updateUser } = useAuth();
+  const isNewUser = user && !user.age && !user.gender;
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +32,10 @@ export default function ProfilePage() {
       setName(user.name);
       setAge(user.age != null ? String(user.age) : "");
       setGender(user.gender || "");
-      setDietary(user.dietary ? user.dietary.split(",") : []);
+      setDietary(user.dietary ? user.dietary.split(",").filter(Boolean) : []);
+      if (!user.age && !user.gender) {
+        setEditing(true);
+      }
     }
   }, [user]);
 
@@ -92,7 +96,15 @@ export default function ProfilePage() {
       <main className="flex min-h-screen items-start justify-center px-4 pt-28 pb-16">
         <div className="w-full max-w-md">
           <div className="rounded-2xl border border-[#BDD5EA]/50 bg-white p-8 shadow-sm">
-            <h1 className="mb-6 text-xl font-bold text-[#495867]">내 프로필</h1>
+            <h1 className="mb-2 text-xl font-bold text-[#495867]">
+              {isNewUser ? "프로필을 완성해주세요" : "내 프로필"}
+            </h1>
+            {isNewUser && (
+              <p className="mb-6 text-sm text-[#577399]">
+                맞춤 레시피 추천을 위해 정보를 입력해주세요.
+              </p>
+            )}
+            {!isNewUser && <div className="mb-6" />}
 
             {error && (
               <p className="mb-4 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-600">
