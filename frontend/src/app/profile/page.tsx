@@ -30,7 +30,7 @@ export default function ProfilePage() {
   useEffect(() => {
     if (user) {
       const isNew = !user.age && !user.gender;
-      setName(isNew ? "" : user.name);
+      setName(user.name || "");
       setAge(user.age != null ? String(user.age) : "");
       setGender(user.gender || "");
       setDietary(user.dietary ? user.dietary.split(",").filter(Boolean) : []);
@@ -67,7 +67,7 @@ export default function ProfilePage() {
         name,
         age: age ? parseInt(age, 10) : undefined,
         gender: gender || undefined,
-        dietary: dietary.length > 0 ? dietary.join(",") : undefined,
+        dietary: dietary.length > 0 ? dietary.join(",") : "",
       });
       updateUser(updated);
       setEditing(false);

@@ -10,17 +10,17 @@ logger = logging.getLogger(__name__)
 # 무드 → 검색 키워드 매핑
 MOOD_KEYWORD_MAP = {
     "happy": "파티",
-    "celebration": "잔치",
     "sad": "국",
-    "comfort": "찌개",
-    "depressed": "죽",
-    "tired": "국",
-    "sick": "죽",
     "angry": "매운",
-    "motivated": "닭가슴살",
-    "stressed": "찌개",
-    "lonely": "국",
+    "tired": "국",
     "excited": "볶음",
+    "comfort": "찌개",
+    "celebration": "잔치",
+    "sick": "죽",
+    "depressed": "죽",
+    "motivated": "닭가슴살",
+    "anxious": "편안한 음식",
+    "neutral": None,
 }
 
 

@@ -21,6 +21,7 @@ services:
     environment:
       - ALLOWED_ORIGINS=http://frontend:3000,https://moodish.semo3.com
       - DATABASE_URL=postgresql://moodish:${POSTGRES_PASSWORD}@postgres:5432/moodish
+      - PUBLIC_URL=https://moodish.semo3.com
     volumes:
       - recipe-data:/app/data
     depends_on:

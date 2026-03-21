@@ -5,7 +5,7 @@ import { fetchRecipeDetail } from "@/lib/recipebook-api";
 import { RecipeBookItem } from "@/lib/types";
 import { XIcon, ClockIcon } from "./Icons";
 
-type RecipeDetail = RecipeBookItem & { steps: string; description: string };
+type RecipeDetail = RecipeBookItem & { steps: string[]; description: string };
 
 function sourceLabel(source: string) {
   switch (source) {
@@ -30,16 +30,6 @@ function sourceDotColor(source: string) {
       return "bg-emerald-500";
     default:
       return "bg-gray-400";
-  }
-}
-
-function parseSteps(steps: string): string[] {
-  try {
-    const parsed = JSON.parse(steps);
-    if (Array.isArray(parsed)) return parsed;
-    return [String(parsed)];
-  } catch {
-    return steps.split("\n").filter((s) => s.trim());
   }
 }
 
@@ -159,7 +149,7 @@ export default function RecipeDetailModal({
                   조리 순서
                 </h3>
                 <ol className="space-y-2 text-sm text-[#577399]">
-                  {parseSteps(detail.steps).map((step, i) => (
+                  {(Array.isArray(detail.steps) ? detail.steps : [detail.steps]).map((step, i) => (
                     <li key={i} className="flex gap-2">
                       <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#BDD5EA]/30 text-xs font-semibold text-[#577399]">
                         {i + 1}

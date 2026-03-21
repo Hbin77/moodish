@@ -21,7 +21,7 @@ export async function fetchRecipeBook(params: {
 
 export async function fetchRecipeDetail(
   id: number
-): Promise<RecipeBookItem & { steps: string; description: string }> {
+): Promise<RecipeBookItem & { steps: string[]; description: string }> {
   const res = await fetch(`/api/recipebook/recipes/${id}`);
   if (!res.ok) {
     throw new Error("레시피 상세 정보를 가져오는 데 실패했습니다.");

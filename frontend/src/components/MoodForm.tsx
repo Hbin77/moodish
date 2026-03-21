@@ -25,7 +25,7 @@ export default function MoodForm() {
 
     try {
       const recipe = await fetchRecipe(
-        selectedMood || "",
+        selectedMood || "neutral",
         moodText.trim() || null,
         user?.age ?? null,
         token || undefined

@@ -62,6 +62,7 @@ export default function LoginPage() {
   const { login } = useAuth();
   const [tab, setTab] = useState<"login" | "register">("login");
   const [error, setError] = useState<string | null>(null);
+  const [regSuccess, setRegSuccess] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [turnstileResetKey, setTurnstileResetKey] = useState(0);
@@ -106,7 +107,7 @@ export default function LoginPage() {
     setError(null);
     setSubmitting(true);
     try {
-      const res = await registerUser({
+      await registerUser({
         email: regEmail,
         password: regPassword,
         name: regName,
@@ -115,8 +116,9 @@ export default function LoginPage() {
         dietary: regDietary.length > 0 ? regDietary.join(",") : undefined,
         turnstile_token: turnstileToken!,
       });
-      login(res.access_token, res.user);
-      router.push("/mood");
+      setTab("login");
+      setError(null);
+      setRegSuccess("회원가입이 완료되었습니다. 이메일을 확인하여 인증을 완료해주세요.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "회원가입에 실패했습니다.");
     } finally {
@@ -158,7 +160,7 @@ export default function LoginPage() {
             <div className="mb-6 flex rounded-xl bg-[#F7F7FF] p-1">
               <button
                 type="button"
-                onClick={() => { setTab("login"); setError(null); setTurnstileToken(null); setTurnstileResetKey((k) => k + 1); }}
+                onClick={() => { setTab("login"); setError(null); setRegSuccess(null); setTurnstileToken(null); setTurnstileResetKey((k) => k + 1); }}
                 className={`flex-1 rounded-lg py-2.5 text-sm font-semibold transition-colors ${
                   tab === "login"
                     ? "bg-white text-[#495867] shadow-sm"
@@ -169,7 +171,7 @@ export default function LoginPage() {
               </button>
               <button
                 type="button"
-                onClick={() => { setTab("register"); setError(null); setTurnstileToken(null); setTurnstileResetKey((k) => k + 1); }}
+                onClick={() => { setTab("register"); setError(null); setRegSuccess(null); setTurnstileToken(null); setTurnstileResetKey((k) => k + 1); }}
                 className={`flex-1 rounded-lg py-2.5 text-sm font-semibold transition-colors ${
                   tab === "register"
                     ? "bg-white text-[#495867] shadow-sm"
@@ -179,6 +181,12 @@ export default function LoginPage() {
                 회원가입
               </button>
             </div>
+
+            {regSuccess && (
+              <p className="mb-4 rounded-lg bg-green-50 px-4 py-2 text-sm text-green-600">
+                {regSuccess}
+              </p>
+            )}
 
             {error && (
               <p className="mb-4 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-600">

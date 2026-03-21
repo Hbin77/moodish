@@ -39,7 +39,7 @@ export interface UpdateProfileData {
 
 const API_BASE = "/api/auth";
 
-export async function registerUser(data: RegisterData): Promise<AuthResponse> {
+export async function registerUser(data: RegisterData): Promise<{ message: string }> {
   const res = await fetch(`${API_BASE}/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

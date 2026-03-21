@@ -1,4 +1,5 @@
 import logging
+import os
 import secrets
 
 import bcrypt
@@ -106,10 +107,12 @@ async def register(body: UserRegister, request: Request):
             verification_token,
         )
 
-    base_url = str(request.base_url).rstrip("/")
-    send_verification_email(body.email, body.name, verification_token, base_url)
+    base_url = os.getenv("PUBLIC_URL", str(request.base_url).rstrip("/"))
 
-    return {"message": "회원가입이 완료되었습니다. 이메일을 확인하여 인증을 완료해주세요."}
+    if not send_verification_email(body.email, body.name, verification_token, base_url):
+        return {"message": "회원가입이 완료되었습니다. 이메일 발송에 실패했습니다. 관리자에게 문의해주세요.", "email_sent": False}
+
+    return {"message": "회원가입이 완료되었습니다. 이메일을 확인하여 인증을 완료해주세요.", "email_sent": True}
 
 
 @router.get("/verify-email")
