@@ -5,10 +5,9 @@ import {
   useContext,
   useState,
   useCallback,
-  useEffect,
   type ReactNode,
 } from "react";
-import { getProfile, type UserProfile } from "./auth-api";
+import { type UserProfile } from "./auth-api";
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -22,54 +21,48 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const TOKEN_KEY = "moodish_token";
+const USER_KEY = "moodish_user";
+
+function getInitialState() {
+  if (typeof window === "undefined") return { token: null, user: null };
+  try {
+    const token = localStorage.getItem(TOKEN_KEY);
+    const userStr = localStorage.getItem(USER_KEY);
+    const user = userStr ? JSON.parse(userStr) : null;
+    return { token, user };
+  } catch {
+    return { token: null, user: null };
+  }
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const initial = getInitialState();
+  const [user, setUser] = useState<UserProfile | null>(initial.user);
+  const [token, setToken] = useState<string | null>(initial.token);
 
-  useEffect(() => {
-    const savedToken = localStorage.getItem(TOKEN_KEY);
-    if (!savedToken) {
-      setLoading(false); // eslint-disable-line react-hooks/set-state-in-effect
-      return;
-    }
-    setToken(savedToken);
-    getProfile(savedToken)
-      .then((profile) => {
-        setUser(profile);
-      })
-      .catch(() => {
-        // Only clear token if it hasn't been updated by login() in the meantime
-        setToken((current) => {
-          if (current === savedToken) {
-            localStorage.removeItem(TOKEN_KEY);
-            return null;
-          }
-          return current;
-        });
-      })
-      .finally(() => setLoading(false));
-  }, []);
+  // No useEffect, no API call on mount. Just read localStorage synchronously.
 
   const login = useCallback((newToken: string, newUser: UserProfile) => {
     localStorage.setItem(TOKEN_KEY, newToken);
+    localStorage.setItem(USER_KEY, JSON.stringify(newUser));
     setToken(newToken);
     setUser(newUser);
   }, []);
 
   const logout = useCallback(() => {
     localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
     setToken(null);
     setUser(null);
   }, []);
 
   const updateUser = useCallback((updatedUser: UserProfile) => {
+    localStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
     setUser(updatedUser);
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, token, loading: false, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

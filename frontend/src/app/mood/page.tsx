@@ -7,16 +7,16 @@ import MoodForm from "@/components/MoodForm";
 import { useAuth } from "@/lib/auth-context";
 
 export default function MoodPage() {
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!user) {
       router.replace("/login");
     }
-  }, [user, loading, router]);
+  }, [user, router]);
 
-  if (loading || !user) return null;
+  if (!user) return null;
 
   return (
     <>

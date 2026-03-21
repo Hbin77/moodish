@@ -11,7 +11,7 @@ import { useAuth } from "@/lib/auth-context";
 
 export default function ResultPage() {
   const router = useRouter();
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
   const cardRef = useRef<HTMLDivElement>(null);
   const [recipe] = useState<Recipe | null>(() => {
     if (typeof window === "undefined") return null;
@@ -24,12 +24,12 @@ export default function ResultPage() {
   });
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!user) {
       router.replace("/login");
     } else if (!recipe) {
       router.replace("/mood");
     }
-  }, [recipe, user, loading, router]);
+  }, [recipe, user, router]);
 
   useEffect(() => {
     const key = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
@@ -38,7 +38,7 @@ export default function ResultPage() {
     }
   }, []);
 
-  if (loading || !user || !recipe) return null;
+  if (!user || !recipe) return null;
 
   return (
     <>

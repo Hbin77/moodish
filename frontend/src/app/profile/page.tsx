@@ -9,7 +9,7 @@ import { DIETARY_OPTIONS } from "@/constants/dietary";
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { user, token, loading, logout, updateUser } = useAuth();
+  const { user, token, logout, updateUser } = useAuth();
   const isNewUser = user && !user.age && !user.gender;
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -22,10 +22,10 @@ export default function ProfilePage() {
   const [dietary, setDietary] = useState<string[]>([]);
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!user) {
       router.replace("/login");
     }
-  }, [loading, user, router]);
+  }, [user, router]);
 
   useEffect(() => {
     if (user) {
@@ -40,7 +40,7 @@ export default function ProfilePage() {
     }
   }, [user]);
 
-  if (loading || !user || !token) {
+  if (!user || !token) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#F7F7FF]">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#BDD5EA] border-t-[#FE5F55]" />
