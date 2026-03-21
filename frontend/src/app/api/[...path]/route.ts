@@ -6,12 +6,17 @@ async function proxyRequest(request: NextRequest) {
   const url = new URL(request.url);
   const backendUrl = `${BACKEND_URL}${url.pathname}${url.search}`;
 
-  const headers = new Headers();
-  request.headers.forEach((value, key) => {
-    if (key !== "host" && key !== "connection") {
-      headers.set(key, value);
-    }
-  });
+  const headers: Record<string, string> = {};
+
+  // Explicitly copy important headers
+  const contentType = request.headers.get("content-type");
+  if (contentType) headers["content-type"] = contentType;
+
+  const authorization = request.headers.get("authorization");
+  if (authorization) headers["authorization"] = authorization;
+
+  const accept = request.headers.get("accept");
+  if (accept) headers["accept"] = accept;
 
   const init: RequestInit = {
     method: request.method,
@@ -27,7 +32,7 @@ async function proxyRequest(request: NextRequest) {
 
     const responseHeaders = new Headers();
     response.headers.forEach((value, key) => {
-      if (key !== "transfer-encoding") {
+      if (key !== "transfer-encoding" && key !== "connection") {
         responseHeaders.set(key, value);
       }
     });
@@ -38,7 +43,7 @@ async function proxyRequest(request: NextRequest) {
       headers: responseHeaders,
     });
   } catch (error) {
-    console.error(`[API Proxy] Error proxying ${request.method} ${url.pathname}:`, error);
+    console.error(`[API Proxy] Error: ${request.method} ${url.pathname}`, error);
     return NextResponse.json(
       { detail: "백엔드 서비스에 연결할 수 없습니다." },
       { status: 502 }
