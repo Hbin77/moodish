@@ -12,7 +12,7 @@ EXPIRE_HOURS = 72
 
 def create_token(user_id: int) -> str:
     payload = {
-        "sub": user_id,
+        "sub": str(user_id),
         "exp": datetime.now(timezone.utc) + timedelta(hours=EXPIRE_HOURS),
         "iat": datetime.now(timezone.utc),
     }
@@ -23,6 +23,7 @@ def verify_token(token: str) -> int | None:
     """Returns user_id or None."""
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        return payload.get("sub")
+        sub = payload.get("sub")
+        return int(sub) if sub else None
     except jwt.PyJWTError:
         return None
