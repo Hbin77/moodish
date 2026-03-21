@@ -12,7 +12,7 @@ export async function fetchRecipeBook(params: {
   if (params.search) searchParams.set("search", params.search);
   if (params.source) searchParams.set("source", params.source);
 
-  const res = await fetch(`/api/recipebook?${searchParams.toString()}`);
+  const res = await fetch(`/api/recipebook/recipes?${searchParams.toString()}`);
   if (!res.ok) {
     throw new Error("레시피 목록을 가져오는 데 실패했습니다.");
   }
@@ -22,7 +22,7 @@ export async function fetchRecipeBook(params: {
 export async function fetchRecipeDetail(
   id: number
 ): Promise<RecipeBookItem & { steps: string; description: string }> {
-  const res = await fetch(`/api/recipebook/${id}`);
+  const res = await fetch(`/api/recipebook/recipes/${id}`);
   if (!res.ok) {
     throw new Error("레시피 상세 정보를 가져오는 데 실패했습니다.");
   }
