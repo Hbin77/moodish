@@ -41,13 +41,36 @@ export default function ShareButtons({ recipe, cardRef }: ShareButtonsProps) {
         window.Kakao.init(key);
       }
 
+      const siteUrl = window.location.origin;
+      const ingredientList = recipe.ingredients
+        .slice(0, 5)
+        .map((ing) => ing.name)
+        .join(", ");
+      const moreCount = Math.max(0, recipe.ingredients.length - 5);
+      const ingredientSummary = moreCount > 0
+        ? `${ingredientList} 외 ${moreCount}가지`
+        : ingredientList;
+
       window.Kakao.Share.sendDefault({
-        objectType: "text",
-        text: `[Moodish] ${recipe.recipe_name}\n\n${recipe.reaction}\n\n${recipe.description}`,
-        link: {
-          mobileWebUrl: window.location.origin,
-          webUrl: window.location.origin,
+        objectType: "feed",
+        content: {
+          title: `🍽️ ${recipe.recipe_name}`,
+          description: `${recipe.reaction}\n\n${recipe.description}\n\n📝 재료: ${ingredientSummary}\n⏱️ ${recipe.cooking_time} | ${recipe.difficulty}`,
+          imageUrl: `${siteUrl}/logo-optimized.png`,
+          link: {
+            mobileWebUrl: siteUrl,
+            webUrl: siteUrl,
+          },
         },
+        buttons: [
+          {
+            title: "Moodish에서 레시피 받기",
+            link: {
+              mobileWebUrl: siteUrl,
+              webUrl: siteUrl,
+            },
+          },
+        ],
       });
     } catch (e) {
       console.error("Kakao share error:", e);
