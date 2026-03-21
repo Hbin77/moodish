@@ -29,11 +29,12 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (user) {
-      setName(user.name);
+      const isNew = !user.age && !user.gender;
+      setName(isNew ? "" : user.name);
       setAge(user.age != null ? String(user.age) : "");
       setGender(user.gender || "");
       setDietary(user.dietary ? user.dietary.split(",").filter(Boolean) : []);
-      if (!user.age && !user.gender) {
+      if (isNew) {
         setEditing(true);
       }
     }
