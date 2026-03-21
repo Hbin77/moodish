@@ -21,7 +21,8 @@ function GoogleCallbackInner() {
     googleLogin(code, redirectUri)
       .then((res) => {
         login(res.access_token, res.user);
-        router.replace("/mood");
+        const needsProfile = !res.user.age && !res.user.gender;
+        router.replace(needsProfile ? "/profile" : "/mood");
       })
       .catch((err) => {
         setError(err instanceof Error ? err.message : "구글 로그인에 실패했습니다.");

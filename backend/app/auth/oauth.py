@@ -45,10 +45,13 @@ async def kakao_get_user(code: str, redirect_uri: str) -> dict:
     kakao_account = data.get("kakao_account", {})
     profile = kakao_account.get("profile", {})
 
+    kakao_id = str(data.get("id", ""))
+    email = kakao_account.get("email") or f"kakao_{kakao_id}@kakao.user"
+
     return {
-        "email": kakao_account.get("email", ""),
+        "email": email,
         "name": profile.get("nickname", "카카오 사용자"),
-        "provider_id": str(data.get("id", "")),
+        "provider_id": kakao_id,
     }
 
 

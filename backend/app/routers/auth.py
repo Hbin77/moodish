@@ -188,9 +188,6 @@ async def kakao_login(body: OAuthCallback):
         logger.exception("Kakao OAuth failed")
         raise HTTPException(status_code=502, detail="카카오 로그인에 실패했습니다.")
 
-    if not info.get("email"):
-        raise HTTPException(status_code=400, detail="카카오 계정에 이메일이 없습니다.")
-
     user = await _get_or_create_oauth_user(
         info["email"], info["name"], "kakao", info["provider_id"]
     )
