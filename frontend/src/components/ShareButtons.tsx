@@ -1,7 +1,7 @@
 "use client";
 
 import { RefObject, useState } from "react";
-import html2canvas from "html2canvas";
+import { toPng } from "html-to-image";
 import { Recipe } from "@/lib/types";
 
 interface ShareButtonsProps {
@@ -31,39 +31,47 @@ export default function ShareButtons({ recipe, cardRef }: ShareButtonsProps) {
     }
 
     const key = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
-    if (key && !window.Kakao.isInitialized()) {
-      window.Kakao.init(key);
+    if (!key) {
+      alert("카카오 공유 기능이 설정되지 않았습니다.");
+      return;
     }
 
-    window.Kakao.Share.sendDefault({
-      objectType: "text",
-      text: `[Moodish] ${recipe.recipe_name}\n\n${recipe.reaction}\n\n${recipe.description}`,
-      link: {
-        mobileWebUrl: window.location.origin,
-        webUrl: window.location.origin,
-      },
-    });
+    try {
+      if (!window.Kakao.isInitialized()) {
+        window.Kakao.init(key);
+      }
+
+      window.Kakao.Share.sendDefault({
+        objectType: "text",
+        text: `[Moodish] ${recipe.recipe_name}\n\n${recipe.reaction}\n\n${recipe.description}`,
+        link: {
+          mobileWebUrl: window.location.origin,
+          webUrl: window.location.origin,
+        },
+      });
+    } catch (e) {
+      console.error("Kakao share error:", e);
+      alert("카카오톡 공유에 실패했습니다. 다시 시도해주세요.");
+    }
   };
 
   const handleSaveImage = async () => {
     if (!cardRef.current || saving) return;
     setSaving(true);
     try {
-      const canvas = await html2canvas(cardRef.current, {
+      const dataUrl = await toPng(cardRef.current, {
         backgroundColor: "#F7F7FF",
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        logging: false,
+        pixelRatio: 2,
+        cacheBust: true,
       });
-      const dataUrl = canvas.toDataURL("image/png");
       const link = document.createElement("a");
       link.download = "moodish-recipe.png";
       link.href = dataUrl;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    } catch {
+    } catch (e) {
+      console.error("Image save error:", e);
       alert("이미지 저장에 실패했습니다. 다시 시도해주세요.");
     } finally {
       setSaving(false);
