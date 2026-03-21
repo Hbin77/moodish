@@ -1,9 +1,12 @@
 import logging
+import secrets
 
 import bcrypt
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import HTMLResponse
 
 from app.auth.dependencies import require_user
+from app.auth.email import send_verification_email
 from app.auth.jwt_utils import create_token
 from app.auth.models import get_pool
 from app.auth.oauth import google_get_user, kakao_get_user
@@ -47,29 +50,26 @@ async def _get_or_create_oauth_user(
 ) -> dict:
     pool = await get_pool()
     async with pool.acquire() as conn:
-        # Check for existing user with same email and provider
         row = await conn.fetchrow(
             "SELECT * FROM users WHERE email = $1 AND provider = $2", email, provider
         )
         if row:
             return dict(row)
 
-        # Check if email exists with a different provider — link accounts
         existing = await conn.fetchrow(
             "SELECT * FROM users WHERE email = $1", email
         )
         if existing:
             row = await conn.fetchrow(
-                "UPDATE users SET provider = $1, provider_id = $2 WHERE id = $3 RETURNING *",
+                "UPDATE users SET provider = $1, provider_id = $2, email_verified = TRUE WHERE id = $3 RETURNING *",
                 provider, provider_id, existing["id"],
             )
             return dict(row)
 
-        # New user — insert with ON CONFLICT to handle race conditions
         row = await conn.fetchrow(
-            """INSERT INTO users (email, name, provider, provider_id)
-               VALUES ($1, $2, $3, $4)
-               ON CONFLICT (email) DO UPDATE SET provider = $3, provider_id = $4
+            """INSERT INTO users (email, name, provider, provider_id, email_verified)
+               VALUES ($1, $2, $3, $4, TRUE)
+               ON CONFLICT (email) DO UPDATE SET provider = $3, provider_id = $4, email_verified = TRUE
                RETURNING *""",
             email,
             name,
@@ -79,10 +79,13 @@ async def _get_or_create_oauth_user(
         return dict(row)
 
 
-@router.post("/register", response_model=TokenResponse)
-async def register(body: UserRegister):
+@router.post("/register")
+async def register(body: UserRegister, request: Request):
     await verify_turnstile(body.turnstile_token)
     pool = await get_pool()
+
+    verification_token = secrets.token_urlsafe(32)
+
     async with pool.acquire() as conn:
         existing = await conn.fetchrow(
             "SELECT id FROM users WHERE email = $1", body.email
@@ -90,9 +93,9 @@ async def register(body: UserRegister):
         if existing:
             raise HTTPException(status_code=409, detail="이미 등록된 이메일입니다.")
 
-        row = await conn.fetchrow(
-            """INSERT INTO users (email, password_hash, name, age, gender, dietary)
-               VALUES ($1, $2, $3, $4, $5, $6)
+        await conn.fetchrow(
+            """INSERT INTO users (email, password_hash, name, age, gender, dietary, verification_token)
+               VALUES ($1, $2, $3, $4, $5, $6, $7)
                RETURNING *""",
             body.email,
             _hash_password(body.password),
@@ -100,11 +103,58 @@ async def register(body: UserRegister):
             body.age,
             body.gender,
             body.dietary or "",
+            verification_token,
         )
 
-    user = dict(row)
-    token = create_token(user["id"])
-    return TokenResponse(access_token=token, user=_user_to_profile(user))
+    base_url = str(request.base_url).rstrip("/")
+    send_verification_email(body.email, body.name, verification_token, base_url)
+
+    return {"message": "회원가입이 완료되었습니다. 이메일을 확인하여 인증을 완료해주세요."}
+
+
+@router.get("/verify-email")
+async def verify_email(token: str):
+    pool = await get_pool()
+    async with pool.acquire() as conn:
+        row = await conn.fetchrow(
+            "SELECT * FROM users WHERE verification_token = $1", token
+        )
+        if not row:
+            return HTMLResponse(
+                content=_verification_page("인증 실패", "유효하지 않은 인증 링크입니다.", False),
+                status_code=400,
+            )
+
+        await conn.execute(
+            "UPDATE users SET email_verified = TRUE, verification_token = NULL WHERE id = $1",
+            row["id"],
+        )
+
+    return HTMLResponse(
+        content=_verification_page("인증 완료", f"{row['name']}님, 이메일 인증이 완료되었습니다!", True),
+    )
+
+
+def _verification_page(title: str, message: str, success: bool) -> str:
+    color = "#FE5F55" if success else "#e53e3e"
+    icon = "&#10003;" if success else "&#10007;"
+    return f"""<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Moodish - {title}</title>
+<style>
+body {{ font-family: -apple-system, sans-serif; background: #F7F7FF; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }}
+.card {{ background: white; border-radius: 16px; padding: 48px; text-align: center; max-width: 400px; border: 1px solid #BDD5EA; }}
+.icon {{ width: 64px; height: 64px; border-radius: 50%; background: {color}; color: white; font-size: 32px; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; }}
+h1 {{ color: #495867; font-size: 24px; margin: 0 0 12px; }}
+p {{ color: #577399; font-size: 14px; line-height: 1.6; margin: 0 0 24px; }}
+a {{ display: inline-block; background: #FE5F55; color: white; padding: 12px 32px; border-radius: 999px; text-decoration: none; font-weight: 600; }}
+</style></head>
+<body><div class="card">
+<div class="icon">{icon}</div>
+<h1>{title}</h1>
+<p>{message}</p>
+<a href="/">Moodish로 돌아가기</a>
+</div></body></html>"""
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -121,6 +171,9 @@ async def login(body: UserLogin):
 
     if not _verify_password(body.password, row["password_hash"]):
         raise HTTPException(status_code=401, detail="이메일 또는 비밀번호가 올바르지 않습니다.")
+
+    if not row.get("email_verified"):
+        raise HTTPException(status_code=403, detail="이메일 인증이 완료되지 않았습니다. 메일함을 확인해주세요.")
 
     user = dict(row)
     token = create_token(user["id"])

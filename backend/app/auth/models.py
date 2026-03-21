@@ -30,7 +30,15 @@ async def init_user_db():
                 dietary TEXT DEFAULT '',
                 provider VARCHAR(20) DEFAULT 'email',
                 provider_id VARCHAR(255),
+                email_verified BOOLEAN DEFAULT FALSE,
+                verification_token VARCHAR(255),
                 created_at TIMESTAMP DEFAULT NOW(),
                 updated_at TIMESTAMP DEFAULT NOW()
             )
+        """)
+        await conn.execute("""
+            ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT FALSE
+        """)
+        await conn.execute("""
+            ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_token VARCHAR(255)
         """)
