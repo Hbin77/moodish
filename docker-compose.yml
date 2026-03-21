@@ -1,10 +1,11 @@
 services:
   postgres:
     image: postgres:16-alpine
+    env_file:
+      - ./backend/.env
     environment:
       POSTGRES_DB: moodish
       POSTGRES_USER: moodish
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres-data:/var/lib/postgresql/data
     expose:
@@ -20,8 +21,6 @@ services:
     environment:
       - ALLOWED_ORIGINS=http://frontend:3000
       - DATABASE_URL=postgresql://moodish:${POSTGRES_PASSWORD}@postgres:5432/moodish
-      - JWT_SECRET=${JWT_SECRET}
-      - TURNSTILE_SECRET_KEY=${TURNSTILE_SECRET_KEY:-}
     volumes:
       - recipe-data:/app/data
     depends_on:
