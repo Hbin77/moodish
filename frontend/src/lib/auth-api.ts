@@ -102,7 +102,9 @@ export async function getProfile(token: string): Promise<UserProfile> {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) {
-    throw new Error("프로필을 가져오는 데 실패했습니다.");
+    const error = new Error("프로필을 가져오는 데 실패했습니다.");
+    (error as Error & { status: number }).status = res.status;
+    throw error;
   }
   return res.json();
 }

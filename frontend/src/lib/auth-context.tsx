@@ -40,8 +40,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(profile);
       })
       .catch(() => {
-        localStorage.removeItem(TOKEN_KEY);
-        setToken(null);
+        // Only clear token if it hasn't been updated by login() in the meantime
+        setToken((current) => {
+          if (current === savedToken) {
+            localStorage.removeItem(TOKEN_KEY);
+            return null;
+          }
+          return current;
+        });
       })
       .finally(() => setLoading(false));
   }, []);
