@@ -22,13 +22,28 @@ async function proxyRequest(request: NextRequest) {
     init.body = await request.arrayBuffer();
   }
 
-  const response = await fetch(backendUrl, init);
+  try {
+    const response = await fetch(backendUrl, init);
 
-  return new NextResponse(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers: Object.fromEntries(response.headers.entries()),
-  });
+    const responseHeaders = new Headers();
+    response.headers.forEach((value, key) => {
+      if (key !== "transfer-encoding") {
+        responseHeaders.set(key, value);
+      }
+    });
+
+    return new NextResponse(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: responseHeaders,
+    });
+  } catch (error) {
+    console.error(`[API Proxy] Error proxying ${request.method} ${url.pathname}:`, error);
+    return NextResponse.json(
+      { detail: "백엔드 서비스에 연결할 수 없습니다." },
+      { status: 502 }
+    );
+  }
 }
 
 export async function GET(request: NextRequest) {

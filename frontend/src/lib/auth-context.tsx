@@ -34,13 +34,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false); // eslint-disable-line react-hooks/set-state-in-effect
       return;
     }
+    setToken(savedToken);
     getProfile(savedToken)
       .then((profile) => {
-        setToken(savedToken);
         setUser(profile);
       })
       .catch(() => {
         localStorage.removeItem(TOKEN_KEY);
+        setToken(null);
       })
       .finally(() => setLoading(false));
   }, []);

@@ -55,6 +55,10 @@ export default function ProfilePage() {
   };
 
   const handleSave = async () => {
+    if (!token) {
+      setError("로그인이 필요합니다. 다시 로그인해주세요.");
+      return;
+    }
     setSaving(true);
     setError(null);
     setSuccess(false);
