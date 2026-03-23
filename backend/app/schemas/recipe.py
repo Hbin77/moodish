@@ -9,7 +9,7 @@ class Ingredient(BaseModel):
 
 
 class RecipeRequest(BaseModel):
-    mood_emoji: str = Field(max_length=10)
+    mood_emoji: str = Field(max_length=20)
     mood_text: str | None = Field(default=None, max_length=500)
     age: int | None = Field(default=None, ge=1, le=120)
 
