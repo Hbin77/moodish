@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from app.auth.dependencies import require_user
 from app.database import get_db
 from app.services.recipe_collector import collect_recipes
+from app.services.recipe_translator import translate_all_english_recipes
 
 router = APIRouter(prefix="/api/recipebook")
 
@@ -17,6 +18,7 @@ async def list_recipes(
     category: str | None = None,
     search: str | None = None,
     source: str | None = None,
+    cuisine: str | None = None,
 ):
     """List recipes with pagination, filtering, search"""
     conditions = []
@@ -28,6 +30,9 @@ async def list_recipes(
     if source:
         conditions.append("source = ?")
         params.append(source)
+    if cuisine:
+        conditions.append("cuisine = ?")
+        params.append(cuisine)
     if search:
         escaped = search.replace("%", "\\%").replace("_", "\\_")
         conditions.append("(name LIKE ? ESCAPE '\\' OR ingredients LIKE ? ESCAPE '\\')")
@@ -70,6 +75,7 @@ async def list_recipes(
                 "difficulty": r["difficulty"],
                 "description": r["description"],
                 "source": r["source"],
+                "cuisine": r["cuisine"],
                 "image_url": r["image_url"],
             })
 
@@ -109,6 +115,7 @@ async def get_recipe(recipe_id: int):
             "difficulty": r["difficulty"],
             "description": r["description"],
             "source": r["source"],
+            "cuisine": r["cuisine"],
             "image_url": r["image_url"],
             "created_at": r["created_at"],
         }
@@ -136,3 +143,10 @@ async def trigger_collection(_user=Depends(require_user)):
     """Manually trigger recipe collection from APIs"""
     count = await collect_recipes()
     return {"message": f"Collected {count} new recipes", "count": count}
+
+
+@router.post("/translate")
+async def trigger_translation(_user=Depends(require_user)):
+    """Translate all English recipes to Korean using GPT"""
+    count = await translate_all_english_recipes()
+    return {"message": f"Translated {count} recipes to Korean", "count": count}

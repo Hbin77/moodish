@@ -5,12 +5,14 @@ export async function fetchRecipeBook(params: {
   category?: string;
   search?: string;
   source?: string;
+  cuisine?: string;
 }): Promise<RecipeBookResponse> {
   const searchParams = new URLSearchParams();
   if (params.page != null) searchParams.set("page", String(params.page));
   if (params.category) searchParams.set("category", params.category);
   if (params.search) searchParams.set("search", params.search);
   if (params.source) searchParams.set("source", params.source);
+  if (params.cuisine) searchParams.set("cuisine", params.cuisine);
 
   const res = await fetch(`/api/recipebook/recipes?${searchParams.toString()}`);
   if (!res.ok) {
