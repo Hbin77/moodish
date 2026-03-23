@@ -7,6 +7,7 @@ import httpx
 
 from app.database import get_db, classify_cuisine, normalize_category
 from app.services.korean_recipe_api import fetch_korean_recipes
+from app.services.mafra_recipe_api import fetch_mafra_recipes
 from app.services.spoonacular_api import fetch_spoonacular_recipes
 from app.services.themealdb_api import fetch_themealdb_recipes, _parse_meal
 
@@ -205,6 +206,7 @@ async def collect_recipes() -> int:
 
     for fetcher, name in [
         (_fetch_korean_bulk, "korean"),
+        (fetch_mafra_recipes, "mafra"),
         (_fetch_spoonacular_bulk, "spoonacular"),
         (_fetch_themealdb_bulk, "themealdb"),
     ]:
@@ -243,12 +245,19 @@ async def collect_recipes() -> int:
                 area = cuisines[0] if cuisines else ""
 
             raw_category = recipe.get("category", "")
-            cuisine = classify_cuisine(source, area=area, name=name, category=raw_category)
+            # MAFRA already provides cuisine and Korean category
+            cuisine = recipe.get("cuisine") or classify_cuisine(source, area=area, name=name, category=raw_category)
             normalized_cat = normalize_category(raw_category, source)
 
+            # MAFRA provides cooking_time and difficulty
+            cooking_time = recipe.get("cooking_time", "")
+            difficulty = recipe.get("difficulty", "")
+            description = recipe.get("description", "")
+
             await db.execute(
-                """INSERT OR IGNORE INTO recipes (name, category, ingredients, steps, source, image_url, cuisine)
-                   VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                """INSERT OR IGNORE INTO recipes
+                   (name, category, ingredients, steps, source, image_url, cuisine, cooking_time, difficulty, description)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
                     name,
                     normalized_cat,
@@ -257,6 +266,9 @@ async def collect_recipes() -> int:
                     source,
                     recipe.get("image_url", ""),
                     cuisine,
+                    cooking_time,
+                    difficulty,
+                    description,
                 ),
             )
             existing_names.add(name)
