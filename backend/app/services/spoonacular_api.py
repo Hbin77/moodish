@@ -71,6 +71,7 @@ async def fetch_spoonacular_recipes(mood: str | None = None) -> list[dict]:
                 "ingredients": ingredients,
                 "steps": steps,
                 "category": ", ".join(r.get("dishTypes", [])),
+                "cuisines": r.get("cuisines", []),
                 "image_url": r.get("image", ""),
             })
 

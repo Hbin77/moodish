@@ -17,6 +17,7 @@ async def list_recipes(
     category: str | None = None,
     search: str | None = None,
     source: str | None = None,
+    cuisine: str | None = None,
 ):
     """List recipes with pagination, filtering, search"""
     conditions = []
@@ -28,6 +29,9 @@ async def list_recipes(
     if source:
         conditions.append("source = ?")
         params.append(source)
+    if cuisine:
+        conditions.append("cuisine = ?")
+        params.append(cuisine)
     if search:
         escaped = search.replace("%", "\\%").replace("_", "\\_")
         conditions.append("(name LIKE ? ESCAPE '\\' OR ingredients LIKE ? ESCAPE '\\')")
@@ -70,6 +74,7 @@ async def list_recipes(
                 "difficulty": r["difficulty"],
                 "description": r["description"],
                 "source": r["source"],
+                "cuisine": r["cuisine"],
                 "image_url": r["image_url"],
             })
 
@@ -109,6 +114,7 @@ async def get_recipe(recipe_id: int):
             "difficulty": r["difficulty"],
             "description": r["description"],
             "source": r["source"],
+            "cuisine": r["cuisine"],
             "image_url": r["image_url"],
             "created_at": r["created_at"],
         }

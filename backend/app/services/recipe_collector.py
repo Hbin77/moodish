@@ -1,7 +1,7 @@
 import json
 import logging
 
-from app.database import get_db
+from app.database import get_db, classify_cuisine, normalize_category
 from app.services.korean_recipe_api import fetch_korean_recipes
 from app.services.spoonacular_api import fetch_spoonacular_recipes
 from app.services.themealdb_api import fetch_themealdb_recipes
@@ -89,6 +89,7 @@ async def _fetch_spoonacular_bulk() -> list[dict]:
                 "ingredients": ingredients,
                 "steps": steps,
                 "category": ", ".join(r.get("dishTypes", [])),
+                "cuisines": r.get("cuisines", []),
                 "image_url": r.get("image", ""),
             })
         return results
@@ -169,16 +170,28 @@ async def collect_recipes() -> int:
             else:
                 steps_json = json.dumps([steps], ensure_ascii=False)
 
+            source = recipe.get("source", "")
+            area = recipe.get("area", "")
+            # Spoonacular cuisines field
+            cuisines = recipe.get("cuisines", [])
+            if cuisines and not area:
+                area = cuisines[0] if cuisines else ""
+
+            raw_category = recipe.get("category", "")
+            cuisine = classify_cuisine(source, area=area, name=name, category=raw_category)
+            normalized_cat = normalize_category(raw_category, source)
+
             await db.execute(
-                """INSERT OR IGNORE INTO recipes (name, category, ingredients, steps, source, image_url)
-                   VALUES (?, ?, ?, ?, ?, ?)""",
+                """INSERT OR IGNORE INTO recipes (name, category, ingredients, steps, source, image_url, cuisine)
+                   VALUES (?, ?, ?, ?, ?, ?, ?)""",
                 (
                     name,
-                    recipe.get("category", ""),
+                    normalized_cat,
                     recipe.get("ingredients", ""),
                     steps_json,
-                    recipe.get("source", ""),
+                    source,
                     recipe.get("image_url", ""),
+                    cuisine,
                 ),
             )
             existing_names.add(name)

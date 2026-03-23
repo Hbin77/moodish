@@ -7,29 +7,18 @@ import { XIcon, ClockIcon } from "./Icons";
 
 type RecipeDetail = RecipeBookItem & { steps: string[]; description: string };
 
-function sourceLabel(source: string) {
-  switch (source) {
-    case "korean":
-      return "한국 레시피";
-    case "spoonacular":
-      return "글로벌";
-    case "themealdb":
-      return "TheMealDB";
+function cuisineBadgeColor(cuisine: string) {
+  switch (cuisine) {
+    case "한식":
+      return "bg-[#FE5F55]/10 text-[#FE5F55]";
+    case "중식":
+      return "bg-red-100 text-red-600";
+    case "양식":
+      return "bg-blue-100 text-blue-600";
+    case "일식":
+      return "bg-amber-100 text-amber-700";
     default:
-      return source;
-  }
-}
-
-function sourceDotColor(source: string) {
-  switch (source) {
-    case "korean":
-      return "bg-[#FE5F55]";
-    case "spoonacular":
-      return "bg-[#577399]";
-    case "themealdb":
-      return "bg-emerald-500";
-    default:
-      return "bg-gray-400";
+      return "bg-gray-100 text-gray-500";
   }
 }
 
@@ -99,15 +88,18 @@ export default function RecipeDetailModal({
                 {detail.name}
               </h2>
               <div className="mt-2 flex flex-wrap items-center gap-2">
-                <span className="rounded-full bg-[#BDD5EA]/30 px-3 py-1 text-xs text-[#577399]">
-                  {detail.category}
-                </span>
-                <span className="flex items-center gap-1 text-xs text-[#577399]">
+                {detail.cuisine && (
                   <span
-                    className={`inline-block h-2 w-2 rounded-full ${sourceDotColor(detail.source)}`}
-                  />
-                  {sourceLabel(detail.source)}
-                </span>
+                    className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${cuisineBadgeColor(detail.cuisine)}`}
+                  >
+                    {detail.cuisine}
+                  </span>
+                )}
+                {detail.category && (
+                  <span className="rounded-full bg-[#BDD5EA]/30 px-3 py-1 text-xs text-[#577399]">
+                    {detail.category}
+                  </span>
+                )}
               </div>
             </div>
 

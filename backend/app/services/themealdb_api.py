@@ -23,6 +23,7 @@ def _parse_meal(meal: dict) -> dict:
         "ingredients": ", ".join(ingredients_parts),
         "steps": meal.get("strInstructions", ""),
         "category": meal.get("strCategory", ""),
+        "area": meal.get("strArea", ""),
         "image_url": meal.get("strMealThumb", ""),
     }
 
