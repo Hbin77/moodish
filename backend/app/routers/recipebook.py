@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from app.auth.dependencies import require_user
 from app.database import get_db
 from app.services.recipe_collector import collect_recipes
+from app.services.recipe_translator import translate_all_english_recipes
 
 router = APIRouter(prefix="/api/recipebook")
 
@@ -142,3 +143,10 @@ async def trigger_collection(_user=Depends(require_user)):
     """Manually trigger recipe collection from APIs"""
     count = await collect_recipes()
     return {"message": f"Collected {count} new recipes", "count": count}
+
+
+@router.post("/translate")
+async def trigger_translation(_user=Depends(require_user)):
+    """Translate all English recipes to Korean using GPT"""
+    count = await translate_all_english_recipes()
+    return {"message": f"Translated {count} recipes to Korean", "count": count}
