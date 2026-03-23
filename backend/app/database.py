@@ -46,7 +46,6 @@ CUISINE_MAP_AREA = {
     "kenyan": "양식",
 }
 
-# Korean food name keywords for classifying existing data
 KOREAN_KEYWORDS = [
     "김치", "불고기", "비빔", "잡채", "떡", "전", "찌개", "국", "탕",
     "볶음", "구이", "조림", "나물", "무침", "밥", "죽", "면", "찜",
@@ -57,7 +56,7 @@ KOREAN_KEYWORDS = [
 JAPANESE_KEYWORDS = [
     "sushi", "ramen", "tempura", "teriyaki", "udon", "soba", "miso",
     "katsu", "tonkatsu", "yakitori", "gyoza", "donburi", "sashimi",
-    "matcha", "mochi", "tofu", "edamame", "takoyaki", "okonomiyaki",
+    "matcha", "mochi", "edamame", "takoyaki", "okonomiyaki",
 ]
 
 CHINESE_KEYWORDS = [
@@ -71,17 +70,16 @@ CHINESE_KEYWORDS = [
 
 def classify_cuisine(source: str, area: str = "", name: str = "", category: str = "") -> str:
     """Classify a recipe into cuisine type."""
+    source = source or ""
     if source == "korean":
         return "한식"
 
-    # Check area field (TheMealDB strArea)
-    area_lower = area.lower().strip()
+    area_lower = (area or "").lower().strip()
     if area_lower in CUISINE_MAP_AREA:
         return CUISINE_MAP_AREA[area_lower]
 
-    # Check name-based heuristics
-    name_lower = name.lower()
-    cat_lower = category.lower()
+    name_lower = (name or "").lower()
+    cat_lower = (category or "").lower()
     combined = f"{name_lower} {cat_lower}"
 
     for kw in KOREAN_KEYWORDS:
@@ -97,9 +95,7 @@ def classify_cuisine(source: str, area: str = "", name: str = "", category: str 
     return "양식"
 
 
-# Category normalization for display
 CATEGORY_MAP = {
-    # TheMealDB categories
     "beef": "소고기",
     "chicken": "닭고기",
     "dessert": "디저트",
@@ -114,7 +110,6 @@ CATEGORY_MAP = {
     "vegetarian": "채식",
     "breakfast": "아침식사",
     "goat": "염소고기",
-    # Spoonacular common dish types
     "main course": "메인요리",
     "side dish": "반찬/사이드",
     "appetizer": "전채",
@@ -142,28 +137,21 @@ CATEGORY_MAP = {
 
 def normalize_category(raw_category: str, source: str) -> str:
     """Normalize category to Korean label."""
+    if not raw_category:
+        return ""
     if source == "korean":
-        return raw_category  # Already in Korean
+        return raw_category
 
-    # For multi-value categories (e.g., "side dish, lunch, main course")
-    # Pick the most meaningful one
     parts = [p.strip().lower() for p in raw_category.split(",")]
     for part in parts:
         if part in CATEGORY_MAP:
             return CATEGORY_MAP[part]
 
-    # If no mapping found, return first part title-cased or original
-    if parts and parts[0]:
-        first = parts[0]
-        if first in CATEGORY_MAP:
-            return CATEGORY_MAP[first]
-        return raw_category.split(",")[0].strip()
-
-    return raw_category
+    return raw_category.split(",")[0].strip()
 
 
 async def init_db():
-    """Create tables if not exist"""
+    """Create tables if not exist, run migrations."""
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
     db = await aiosqlite.connect(DB_PATH)
     await db.execute("""
@@ -188,9 +176,6 @@ async def init_db():
     await db.execute(
         "CREATE INDEX IF NOT EXISTS idx_recipes_source ON recipes(source)"
     )
-    await db.execute(
-        "CREATE INDEX IF NOT EXISTS idx_recipes_cuisine ON recipes(cuisine)"
-    )
 
     # Migration: add cuisine column if table already exists without it
     cursor = await db.execute("PRAGMA table_info(recipes)")
@@ -199,20 +184,26 @@ async def init_db():
         await db.execute("ALTER TABLE recipes ADD COLUMN cuisine TEXT DEFAULT ''")
         logger.info("Added cuisine column to recipes table")
 
-    # Migrate existing data: classify cuisine + normalize categories
+    # Index must be created AFTER column exists
+    await db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_recipes_cuisine ON recipes(cuisine)"
+    )
+
+    # Migrate existing data: classify cuisine + normalize categories (one-time)
     cursor = await db.execute(
         "SELECT id, source, name, category FROM recipes WHERE cuisine = '' OR cuisine IS NULL"
     )
     rows = await cursor.fetchall()
     if rows:
+        updates = []
         for row in rows:
-            rid, source, name, category = row[0], row[1], row[2], row[3]
-            cuisine = classify_cuisine(source, area="", name=name, category=category)
-            normalized_cat = normalize_category(category, source)
-            await db.execute(
-                "UPDATE recipes SET cuisine = ?, category = ? WHERE id = ?",
-                (cuisine, normalized_cat, rid),
-            )
+            rid, source, name, cat = row[0], row[1] or "", row[2] or "", row[3] or ""
+            cuisine = classify_cuisine(source, area="", name=name, category=cat)
+            normalized_cat = normalize_category(cat, source)
+            updates.append((cuisine, normalized_cat, rid))
+        await db.executemany(
+            "UPDATE recipes SET cuisine = ?, category = ? WHERE id = ?", updates
+        )
         logger.info(f"Migrated cuisine/category for {len(rows)} recipes")
 
     await db.commit()
