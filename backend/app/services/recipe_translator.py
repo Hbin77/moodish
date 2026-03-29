@@ -1,6 +1,5 @@
 import json
 import logging
-import re
 
 from app.database import get_db
 from app.services.openai_service import _get_client
@@ -78,7 +77,7 @@ async def translate_all_english_recipes() -> int:
     try:
         cursor = await db.execute(
             "SELECT id, name, ingredients, steps, description, cooking_time, difficulty "
-            "FROM recipes WHERE source != 'korean'"
+            "FROM recipes WHERE source NOT IN ('korean', 'mafra')"
         )
         rows = await cursor.fetchall()
 
@@ -89,7 +88,8 @@ async def translate_all_english_recipes() -> int:
             if not _is_english(name):
                 continue
 
-            steps_raw = row[4] or "[]"
+            # row: 0=id, 1=name, 2=ingredients, 3=steps, 4=description, 5=cooking_time, 6=difficulty
+            steps_raw = row[3] or "[]"
             try:
                 steps = json.loads(steps_raw) if steps_raw else []
             except (json.JSONDecodeError, TypeError):
@@ -120,7 +120,7 @@ async def translate_all_english_recipes() -> int:
                     result.get("name", name),
                     result.get("ingredients", row[2] or ""),
                     steps_json,
-                    result.get("description", row[3] or ""),
+                    result.get("description", row[4] or ""),
                     result.get("cooking_time", row[5] or ""),
                     result.get("difficulty", row[6] or ""),
                     rid,
