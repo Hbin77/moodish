@@ -6,27 +6,16 @@ import Footer from "@/components/Footer";
 import RecipeDetailModal from "@/components/RecipeDetailModal";
 import { ClockIcon } from "@/components/Icons";
 import { fetchRecipeBook, fetchCategories } from "@/lib/recipebook-api";
+import { cuisineBadgeColor } from "@/lib/cuisine-utils";
 import { RecipeBookItem, CategoryItem } from "@/lib/types";
 
-const SOURCE_TABS = [
+const CUISINE_TABS = [
   { label: "전체", value: "" },
-  { label: "한국 레시피", value: "korean" },
-  { label: "글로벌", value: "spoonacular" },
-  { label: "TheMealDB", value: "themealdb" },
+  { label: "한식", value: "한식" },
+  { label: "중식", value: "중식" },
+  { label: "양식", value: "양식" },
+  { label: "일식", value: "일식" },
 ];
-
-function sourceDotColor(source: string) {
-  switch (source) {
-    case "korean":
-      return "bg-[#FE5F55]";
-    case "spoonacular":
-      return "bg-[#577399]";
-    case "themealdb":
-      return "bg-emerald-500";
-    default:
-      return "bg-gray-400";
-  }
-}
 
 function SkeletonCard() {
   return (
@@ -46,7 +35,7 @@ export default function RecipesPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
-  const [source, setSource] = useState("");
+  const [cuisine, setCuisine] = useState("");
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -76,7 +65,7 @@ export default function RecipesPage() {
         page,
         category: category || undefined,
         search: debouncedSearch || undefined,
-        source: source || undefined,
+        cuisine: cuisine || undefined,
       });
       setRecipes(data.recipes);
       setTotalPages(data.pages);
@@ -85,7 +74,7 @@ export default function RecipesPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, category, debouncedSearch, source]);
+  }, [page, category, debouncedSearch, cuisine]);
 
   useEffect(() => {
     loadRecipes();
@@ -96,8 +85,8 @@ export default function RecipesPage() {
     setPage(1);
   };
 
-  const handleSourceChange = (src: string) => {
-    setSource(src);
+  const handleCuisineChange = (c: string) => {
+    setCuisine(c);
     setPage(1);
   };
 
@@ -149,9 +138,26 @@ export default function RecipesPage() {
             />
           </div>
 
+          {/* Cuisine tabs */}
+          <div className="mb-4 flex gap-1 rounded-xl bg-white p-1 border border-[#BDD5EA]/30">
+            {CUISINE_TABS.map((tab) => (
+              <button
+                key={tab.value}
+                onClick={() => handleCuisineChange(tab.value)}
+                className={`flex-1 rounded-lg px-3 py-2 text-xs font-medium transition-colors ${
+                  cuisine === tab.value
+                    ? "bg-[#495867] text-white"
+                    : "text-[#577399] hover:bg-[#BDD5EA]/20"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
           {/* Category filters */}
           {categories.length > 0 && (
-            <div className="mb-4 flex gap-2 overflow-x-auto pb-2">
+            <div className="mb-8 flex gap-2 overflow-x-auto pb-2">
               {categories.map((cat) => (
                 <button
                   key={cat.category}
@@ -167,23 +173,6 @@ export default function RecipesPage() {
               ))}
             </div>
           )}
-
-          {/* Source tabs */}
-          <div className="mb-8 flex gap-1 rounded-xl bg-white p-1 border border-[#BDD5EA]/30">
-            {SOURCE_TABS.map((tab) => (
-              <button
-                key={tab.value}
-                onClick={() => handleSourceChange(tab.value)}
-                className={`flex-1 rounded-lg px-3 py-2 text-xs font-medium transition-colors ${
-                  source === tab.value
-                    ? "bg-[#495867] text-white"
-                    : "text-[#577399] hover:bg-[#BDD5EA]/20"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
 
           {/* Recipe grid */}
           {loading ? (
@@ -213,22 +202,27 @@ export default function RecipesPage() {
                     {recipe.name}
                   </h3>
                   <div className="mb-3 flex flex-wrap items-center gap-2">
-                    <span className="rounded-full bg-[#BDD5EA]/30 px-3 py-1 text-xs text-[#577399]">
-                      {recipe.category}
-                    </span>
-                    <span className="flex items-center gap-1 text-xs text-[#577399]">
+                    {recipe.cuisine && (
                       <span
-                        className={`inline-block h-2 w-2 rounded-full ${sourceDotColor(recipe.source)}`}
-                      />
-                      {recipe.source}
-                    </span>
+                        className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${cuisineBadgeColor(recipe.cuisine)}`}
+                      >
+                        {recipe.cuisine}
+                      </span>
+                    )}
+                    {recipe.category && (
+                      <span className="rounded-full bg-[#BDD5EA]/30 px-3 py-1 text-xs text-[#577399]">
+                        {recipe.category}
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center gap-3 text-xs text-[#577399]">
-                    <span className="flex items-center gap-1">
-                      <ClockIcon className="h-3.5 w-3.5" />
-                      {recipe.cooking_time}
-                    </span>
-                    <span>{recipe.difficulty}</span>
+                    {recipe.cooking_time && (
+                      <span className="flex items-center gap-1">
+                        <ClockIcon className="h-3.5 w-3.5" />
+                        {recipe.cooking_time}
+                      </span>
+                    )}
+                    {recipe.difficulty && <span>{recipe.difficulty}</span>}
                   </div>
                 </button>
               ))}

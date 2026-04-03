@@ -29,6 +29,7 @@ export interface RecipeBookItem {
   cooking_time: string;
   difficulty: string;
   source: string;
+  cuisine: string;
   image_url: string;
 }
 

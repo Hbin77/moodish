@@ -4,34 +4,9 @@ import { useEffect, useState } from "react";
 import { fetchRecipeDetail } from "@/lib/recipebook-api";
 import { RecipeBookItem } from "@/lib/types";
 import { XIcon, ClockIcon } from "./Icons";
+import { cuisineBadgeColor } from "@/lib/cuisine-utils";
 
 type RecipeDetail = RecipeBookItem & { steps: string[]; description: string };
-
-function sourceLabel(source: string) {
-  switch (source) {
-    case "korean":
-      return "한국 레시피";
-    case "spoonacular":
-      return "글로벌";
-    case "themealdb":
-      return "TheMealDB";
-    default:
-      return source;
-  }
-}
-
-function sourceDotColor(source: string) {
-  switch (source) {
-    case "korean":
-      return "bg-[#FE5F55]";
-    case "spoonacular":
-      return "bg-[#577399]";
-    case "themealdb":
-      return "bg-emerald-500";
-    default:
-      return "bg-gray-400";
-  }
-}
 
 export default function RecipeDetailModal({
   recipeId,
@@ -99,15 +74,18 @@ export default function RecipeDetailModal({
                 {detail.name}
               </h2>
               <div className="mt-2 flex flex-wrap items-center gap-2">
-                <span className="rounded-full bg-[#BDD5EA]/30 px-3 py-1 text-xs text-[#577399]">
-                  {detail.category}
-                </span>
-                <span className="flex items-center gap-1 text-xs text-[#577399]">
+                {detail.cuisine && (
                   <span
-                    className={`inline-block h-2 w-2 rounded-full ${sourceDotColor(detail.source)}`}
-                  />
-                  {sourceLabel(detail.source)}
-                </span>
+                    className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${cuisineBadgeColor(detail.cuisine)}`}
+                  >
+                    {detail.cuisine}
+                  </span>
+                )}
+                {detail.category && (
+                  <span className="rounded-full bg-[#BDD5EA]/30 px-3 py-1 text-xs text-[#577399]">
+                    {detail.category}
+                  </span>
+                )}
               </div>
             </div>
 
